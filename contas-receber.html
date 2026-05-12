@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — Contas a Receber</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">F</div>
+  <nav>
+    <a href="contas-receber.html">
+      <button class="nav-btn active" title="A Receber">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
+        </svg>
+        <span class="nav-tooltip">A Receber</span>
+      </button>
+    </a>
+    <a href="contas-pagar.html">
+      <button class="nav-btn" title="A Pagar">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
+        </svg>
+        <span class="nav-tooltip">A Pagar</span>
+      </button>
+    </a>
+    <a href="fluxo-caixa.html">
+      <button class="nav-btn" title="Fluxo de Caixa">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span class="nav-tooltip">Fluxo de Caixa</span>
+      </button>
+    </a>
+    <a href="dre.html">
+      <button class="nav-btn" title="DRE">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span class="nav-tooltip">DRE</span>
+      </button>
+    </a>
+  </nav>
+  <div class="bottom-nav">
+    <button class="nav-btn" title="Suporte">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span class="nav-tooltip">Suporte</span>
+    </button>
+    <a href="dashboard.html">
+      <button class="nav-btn" title="Voltar">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        <span class="nav-tooltip">Sair</span>
+      </button>
+    </a>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="logo-text">One <span>Finance</span></span>
+    <div class="divider-v"></div>
+    <span class="page-title">Contas a Receber</span>
+  </div>
+  <div class="header-right">
+    <div class="time-badge">
+      <span class="lbl">Última atualização</span>
+      <span id="clock"></span>
+    </div>
+    <button class="icon-btn" onclick="toggleFull()">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+      </svg>
+    </button>
+    <div class="avatar">AC</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page">
+
+    <!-- FILTERS + TOGGLE -->
+    <div class="filter-row">
+      <span class="filter-lbl">Ano</span>
+      <select class="filter-sel" id="selAno" onchange="updateData()">
+        <option>2026</option><option>2025</option><option>2024</option>
+      </select>
+      <span class="filter-lbl">Mês</span>
+      <select class="filter-sel" id="selMes" onchange="updateData()">
+        <option value="all">Todos</option>
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+        <option value="3">Março</option><option value="4">Abril</option>
+        <option value="5" selected>Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option>
+        <option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+      <div style="margin-left:auto;">
+        <div class="toggle">
+          <button class="tog on" id="togVal" onclick="setToggle('val')">Receber R$</button>
+          <button class="tog" id="togQtd" onclick="setToggle('qtd')">Receber Qtde</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Transações Vencidas</div>
+        <div class="kpi-val red" id="kpiVencida">R$ 48.320</div>
+        <div class="kpi-footer">
+          <span class="badge down">▼ 5,2%</span>
+          <span class="kpi-sub">vs. mês anterior</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Transações A Vencer</div>
+        <div class="kpi-val blue" id="kpiAVencer">R$ 312.480</div>
+        <div class="kpi-footer">
+          <span class="badge up">▲ 12,4%</span>
+          <span class="kpi-sub">vs. mês anterior</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Transações Recebidas</div>
+        <div class="kpi-val green" id="kpiRecebida">R$ 492.760</div>
+        <div class="kpi-footer">
+          <span class="badge up">▲ 8,7%</span>
+          <span class="kpi-sub">vs. mês anterior</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total do Período</div>
+        <div class="kpi-val" id="kpiTotal">R$ 853.560</div>
+        <div class="kpi-footer">
+          <span class="badge up">▲ 6,1%</span>
+          <span class="kpi-sub">vs. mês anterior</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1: Bar + Donut -->
+    <div class="charts-21">
+      <div class="chart-card">
+        <div class="chart-title">Recebidos por Mês</div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="chartRecebidos"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% Status a Receber</div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="chartDonut"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART ROW 2: Em Aberto -->
+    <div class="charts-1">
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div class="chart-title" style="margin:0">Em Aberto — A Vencer vs Vencidos (Jan–Dez 2026)</div>
+          <div style="display:flex;gap:14px;font-size:11px;color:var(--text2);">
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block;"></span>A Vencer</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#f43f5e;display:inline-block;"></span>Vencidos</span>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="chartAberto"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="footer">
+  <div class="footer-dot"></div>
+  One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4
+</div>
+
+<script>
+Chart.defaults.color = '#8ba0c4';
+Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
+Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+Chart.defaults.font.size = 11;
+
+const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const recVal = [380200,412500,445800,468300,492760,0,0,0,0,0,0,0];
+const recQtd = [142,158,171,180,189,0,0,0,0,0,0,0];
+
+let mode = 'val';
+let chartRecebidos, chartDonut, chartAberto;
+
+function fmt(v) { return v > 0 ? 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:0}) : '—'; }
+
+function setToggle(m) {
+  mode = m;
+  document.getElementById('togVal').classList.toggle('on', m==='val');
+  document.getElementById('togQtd').classList.toggle('on', m==='qtd');
+  updateData();
+}
+
+function updateData() {
+  const data = mode === 'val' ? recVal : recQtd;
+  const prefix = mode === 'val' ? 'R$ ' : '';
+  chartRecebidos.data.datasets[0].data = data;
+  chartRecebidos.options.plugins.tooltip.callbacks.label = ctx =>
+    prefix + (mode==='val' ? ctx.raw.toLocaleString('pt-BR') : ctx.raw);
+  chartRecebidos.update();
+}
+
+function initCharts() {
+  // Bar: Recebidos
+  chartRecebidos = new Chart(document.getElementById('chartRecebidos'), {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [{
+        data: recVal,
+        backgroundColor: ctx => ctx.dataIndex < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)',
+        borderRadius: 5, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => 'R$ ' + ctx.raw.toLocaleString('pt-BR') }}},
+      scales: {
+        x: { grid: { display: false }},
+        y: { grid: { color: 'rgba(59,130,246,0.07)' },
+          ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }}
+      }
+    }
+  });
+
+  // Donut: % Status
+  chartDonut = new Chart(document.getElementById('chartDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: ['A Vencer','Recebidos','Vencidos','Perda'],
+      datasets: [{
+        data: [36.6, 57.7, 5.7, 0.0],
+        backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'],
+        borderWidth: 0, hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyleWidth: 8 }},
+        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '%' }}
+      }
+    }
+  });
+
+  // Grouped Bar: Em Aberto
+  chartAberto = new Chart(document.getElementById('chartAberto'), {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [
+        { label: 'A Vencer', data: [280000,305000,290000,312480,312480,330000,345000,360000,378000,395000,410000,425000],
+          backgroundColor: '#2563eb', borderRadius: 4, borderSkipped: false },
+        { label: 'Vencidos', data: [52000,48000,55000,50000,48320,0,0,0,0,0,0,0],
+          backgroundColor: '#f43f5e', borderRadius: 4, borderSkipped: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': R$ ' + ctx.raw.toLocaleString('pt-BR') }}},
+      scales: {
+        x: { grid: { display: false }},
+        y: { grid: { color: 'rgba(59,130,246,0.07)' },
+          ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }}
+      }
+    }
+  });
+}
+
+function toggleFull() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+updateClock(); setInterval(updateClock, 30000);
+initCharts();
+</script>
+</body>
+</html>

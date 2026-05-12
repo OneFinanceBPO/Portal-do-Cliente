@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — Login</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .error-msg { font-size:12px; color:var(--red); margin-top:6px; display:none; }
+  .form-input.err { border-color:var(--red); }
+</style>
+</head>
+<body>
+
+<div class="login-page">
+  <!-- LEFT: BRANDING -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-logo">F</div>
+      <h1>Portal do <span>Usuário</span></h1>
+      <p>Acesse os dados financeiros da sua empresa com segurança e em tempo real.</p>
+    </div>
+
+    <div class="login-feats">
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        Dashboard financeiro completo
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </div>
+        Dados integrados via Conta Azul
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        Ambiente isolado e seguro por empresa
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        Atualização em tempo real
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM -->
+  <div class="login-right">
+    <div class="login-box">
+      <h2>Bem-vindo de volta</h2>
+      <p class="sub">Acesse sua conta para continuar</p>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-lbl" for="email">E-mail</label>
+          <div class="form-wrap">
+            <input class="form-input" type="email" id="email" placeholder="seu@email.com.br" autocomplete="email">
+            <span class="input-ico">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="error-msg" id="emailErr">Informe um e-mail válido.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-lbl" for="senha">Senha</label>
+          <div class="form-wrap">
+            <input class="form-input" type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+            <span class="input-ico" onclick="togglePass()" id="eyeBtn">
+              <svg id="eyeOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <svg id="eyeClosed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </span>
+          </div>
+          <div class="error-msg" id="senhaErr">Informe sua senha.</div>
+        </div>
+
+        <!-- reCAPTCHA mock -->
+        <div class="recaptcha" id="rcBox">
+          <div class="rc-check" id="rcCheck" onclick="toggleRC()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <span class="rc-text">Não sou um robô</span>
+          <div class="rc-logo">
+            <div class="rc-g">reCAPTCHA</div>
+            <div>Privacidade · Termos</div>
+          </div>
+        </div>
+        <div class="error-msg" id="rcErr" style="margin-top:-14px;margin-bottom:14px">Confirme que não é um robô.</div>
+
+        <button type="submit" class="btn btn-primary btn-login">Entrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="footer-login">
+  <span class="footer-dot" style="display:inline-block; width:5px; height:5px; background:var(--green); border-radius:50%; margin-right:6px;"></span>
+  One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4
+</div>
+
+<script>
+  let rcDone = false;
+
+  function togglePass() {
+    const inp = document.getElementById('senha');
+    const open = document.getElementById('eyeOpen');
+    const closed = document.getElementById('eyeClosed');
+    if (inp.type === 'password') {
+      inp.type = 'text'; open.style.display='block'; closed.style.display='none';
+    } else {
+      inp.type = 'password'; open.style.display='none'; closed.style.display='block';
+    }
+  }
+
+  function toggleRC() {
+    rcDone = !rcDone;
+    const el = document.getElementById('rcCheck');
+    el.classList.toggle('checked', rcDone);
+    document.getElementById('rcErr').style.display = 'none';
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    let ok = true;
+    const email = document.getElementById('email');
+    const senha = document.getElementById('senha');
+
+    document.getElementById('emailErr').style.display = 'none';
+    document.getElementById('senhaErr').style.display = 'none';
+    email.classList.remove('err'); senha.classList.remove('err');
+
+    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+      document.getElementById('emailErr').style.display = 'block';
+      email.classList.add('err'); ok = false;
+    }
+    if (!senha.value) {
+      document.getElementById('senhaErr').style.display = 'block';
+      senha.classList.add('err'); ok = false;
+    }
+    if (!rcDone) {
+      document.getElementById('rcErr').style.display = 'block'; ok = false;
+    }
+
+    if (ok) {
+      // Simulação: ADM vai para gerenciamento, outros para dashboard
+      if (email.value.includes('adm') || email.value.includes('onefinance')) {
+        window.location.href = 'gerenciamento.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
+  }
+</script>
+</body>
+</html>

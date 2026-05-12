@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — DRE</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* DRE table overrides */
+  .dre-outer { overflow-x:auto; border-radius:12px; border:1px solid var(--border); }
+  .dre-tbl { width:100%; border-collapse:collapse; font-size:12px; min-width:980px; }
+  .dre-tbl thead th {
+    padding:10px 14px; text-align:right; color:var(--text2);
+    font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.05em;
+    border-bottom:1px solid var(--border); background:var(--bg2); white-space:nowrap;
+    position:sticky; top:0; z-index:4;
+  }
+  .dre-tbl thead th:first-child { text-align:left; min-width:220px; position:sticky; left:0; z-index:5; background:var(--bg2); }
+  .dre-tbl tbody td { padding:9px 14px; border-bottom:1px solid rgba(255,255,255,.035); text-align:right; white-space:nowrap; }
+  .dre-tbl tbody td:first-child { text-align:left; position:sticky; left:0; z-index:2; background:var(--bg-card); }
+  .dre-tbl tbody tr:hover td { background:rgba(59,130,246,.04); }
+  .dre-tbl tbody tr:hover td:first-child { background:rgba(59,130,246,.06); }
+
+  /* Row types */
+  .r-group td { background:rgba(37,99,235,.07)!important; color:var(--accent2); font-weight:700; font-size:11px; }
+  .r-group td:first-child { background:rgba(37,99,235,.1)!important; }
+  .r-sub td:first-child { padding-left:32px; }
+  .r-sub2 td:first-child { padding-left:48px; color:var(--text2); font-size:11px; }
+  .r-total td { font-weight:700; border-top:2px solid var(--border)!important; }
+  .r-total.pos td { color:var(--green); }
+  .r-total.neg td { color:var(--red); }
+  .r-separator td { height:6px; background:var(--bg2)!important; padding:0; border:none!important; }
+
+  .exp { background:none; border:none; color:var(--text3); cursor:pointer; font-size:10px; padding:0 4px 0 0; vertical-align:middle; transition:transform .2s; display:inline-block; }
+  .exp.open { transform:rotate(90deg); }
+
+  /* KPI grid for 6 items */
+  .kpi-6 { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+  @media(max-width:1200px){ .kpi-6{grid-template-columns:repeat(3,1fr);} }
+
+  .kpi-6 .kpi .kpi-val { font-size:15px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">F</div>
+  <nav>
+    <a href="contas-receber.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg><span class="nav-tooltip">A Receber</span></button></a>
+    <a href="contas-pagar.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg><span class="nav-tooltip">A Pagar</span></button></a>
+    <a href="fluxo-caixa.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span class="nav-tooltip">Fluxo de Caixa</span></button></a>
+    <a href="dre.html"><button class="nav-btn active"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="nav-tooltip">DRE</span></button></a>
+  </nav>
+  <div class="bottom-nav">
+    <button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="nav-tooltip">Suporte</span></button>
+    <a href="dashboard.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span class="nav-tooltip">Sair</span></button></a>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="logo-text">One <span>Finance</span></span>
+    <div class="divider-v"></div>
+    <span class="page-title">DRE — Demonstrativo de Resultado Gerencial</span>
+  </div>
+  <div class="header-right">
+    <div class="time-badge"><span class="lbl">Última atualização</span><span id="clock"></span></div>
+    <button class="icon-btn" onclick="toggleFull()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg></button>
+    <div class="avatar">AC</div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="page">
+
+    <!-- FILTERS -->
+    <div class="filter-row">
+      <span class="filter-lbl">Ano</span>
+      <select class="filter-sel"><option>2026</option><option>2025</option><option>2024</option></select>
+      <span class="filter-lbl">Mês</span>
+      <select class="filter-sel">
+        <option value="all">Todos</option>
+        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
+        <option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
+        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+      </select>
+    </div>
+
+    <!-- 6 KPIs — valores em R$ xx,xx conforme solicitado -->
+    <div class="kpi-6">
+      <div class="kpi">
+        <div class="kpi-label">Receita Bruta de Vendas</div>
+        <div class="kpi-val blue">R$ 492.760,44</div>
+        <div class="kpi-footer"><span class="badge up">▲ 8,7%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Receita Líquida de Vendas</div>
+        <div class="kpi-val blue">R$ 441.284,39</div>
+        <div class="kpi-footer"><span class="badge up">▲ 7,9%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Lucro Bruto</div>
+        <div class="kpi-val green">R$ 298.540,22</div>
+        <div class="kpi-footer"><span class="badge up">▲ 11,2%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Lucro / Prej. Operacional</div>
+        <div class="kpi-val green">R$ 187.320,15</div>
+        <div class="kpi-footer"><span class="badge up">▲ 9,4%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Lucro / Prej. Líquido</div>
+        <div class="kpi-val green">R$ 142.890,73</div>
+        <div class="kpi-footer"><span class="badge up">▲ 14,1%</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Lucro / Prej. Final</div>
+        <div class="kpi-val green">R$ 135.240,50</div>
+        <div class="kpi-footer"><span class="badge up">▲ 13,6%</span></div>
+      </div>
+    </div>
+
+    <!-- CHART: Evolução dos Lucros -->
+    <div class="chart-card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="chart-title" style="margin:0">Evolução Mensal — Receita vs Lucro Bruto vs Lucro Líquido</div>
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--text2);">
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#3b82f6;display:inline-block"></span>Receita Bruta</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#22c55e;display:inline-block"></span>Lucro Bruto</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#facc15;display:inline-block"></span>Lucro Líquido</span>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:200px"><canvas id="chartDRE"></canvas></div>
+    </div>
+
+    <!-- DRE TABLE -->
+    <div style="background:var(--bg-card);border-radius:12px;padding:20px;border:1px solid var(--border);">
+      <div class="sec-header" style="margin-bottom:16px">
+        <div class="sec-title">DRE Gerencial — Janeiro a Maio 2026</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="expandAll()">Expandir Tudo</button>
+          <button class="btn btn-ghost btn-sm" onclick="collapseAll()">Recolher Tudo</button>
+        </div>
+      </div>
+      <div class="dre-outer">
+        <table class="dre-tbl" id="dreTbl">
+          <thead>
+            <tr>
+              <th>Conta</th>
+              <th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th>
+              <th style="border-left:2px solid var(--border)">Total</th>
+            </tr>
+          </thead>
+          <tbody id="dreTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="footer"><div class="footer-dot"></div>One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4</div>
+
+<script>
+Chart.defaults.color = '#8ba0c4';
+Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
+Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+Chart.defaults.font.size = 11;
+
+// ── CHART ──
+const meses = ['Jan','Fev','Mar','Abr','Mai'];
+new Chart(document.getElementById('chartDRE'), {
+  type: 'line',
+  data: {
+    labels: meses,
+    datasets: [
+      { label:'Receita Bruta',  data:[380200,412500,445800,468300,492760], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Lucro Bruto',    data:[238000,256000,272400,284100,298540], borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Lucro Líquido',  data:[98200,108400,119800,128100,142890],  borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>'R$ '+ctx.raw.toLocaleString('pt-BR')}}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}
+    }
+  }
+});
+
+// ── DRE DATA ──
+const C = (n) => n === null ? '—' : 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const neg = (n) => n === null ? '—' : '(R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2}) + ')';
+
+// rows: { type: 'group'|'sub'|'sub2'|'total'|'sep', label, values:[jan,fev,mar,abr,mai], group?, pos? }
+const rows = [
+  {t:'group', label:'Receitas Operacionais'},
+  {t:'sub',   label:'(+) Receita Bruta de Vendas',          v:[380200,412500,445800,468300,492760], pos:true},
+  {t:'sub2',  label:'Vendas de Produtos',                   v:[228120,247500,267480,280980,295656], pos:true},
+  {t:'sub2',  label:'Prestação de Serviços',                v:[152080,165000,178320,187320,197104], pos:true},
+  {t:'sub',   label:'(-) Deduções da Receita Bruta',        v:[-45624,-49500,-53496,-56196,-59476], pos:false},
+  {t:'sub2',  label:'Impostos s/ Vendas (ICMS/PIS/COFINS)', v:[-32408,-35100,-37920,-39840,-42176], pos:false},
+  {t:'sub2',  label:'Devoluções e Abatimentos',             v:[-13216,-14400,-15576,-16356,-17300], pos:false},
+  {t:'total', label:'(=) Receita Líquida de Vendas',        v:[334576,363000,392304,412104,433284], pos:true, cls:'pos'},
+  {t:'sep'},
+  {t:'group', label:'Custos'},
+  {t:'sub',   label:'(-) Custo dos Produtos Vendidos (CPV)', v:[-96576,-107000,-119904,-128004,-134744], pos:false},
+  {t:'sub',   label:'(-) Custo dos Serviços Prestados (CSP)',v:[-38000,-44100,-47904,-52800,-57300], pos:false},
+  {t:'total', label:'(=) Lucro Bruto',                      v:[200000,211900,224496,231300,241240], pos:true, cls:'pos'},
+  {t:'sep'},
+  {t:'group', label:'Despesas Operacionais'},
+  {t:'sub',   label:'(-) Despesas com Pessoal',             v:[-52400,-56200,-59800,-62400,-66600], pos:false},
+  {t:'sub',   label:'(-) Despesas Administrativas',         v:[-18200,-19400,-20800,-21600,-22400], pos:false},
+  {t:'sub',   label:'(-) Despesas Comerciais',              v:[-12800,-14200,-15600,-16400,-17600], pos:false},
+  {t:'sub',   label:'(-) Outras Despesas Operacionais',     v:[-8400,-9100,-9800,-10400,-11000], pos:false},
+  {t:'total', label:'(=) Lucro / Prej. Operacional',        v:[108200,113000,118496,120500,123640], pos:true, cls:'pos'},
+  {t:'sep'},
+  {t:'group', label:'Resultado Financeiro'},
+  {t:'sub',   label:'(+) Receitas Financeiras',             v:[2100,2400,2600,2800,3100], pos:true},
+  {t:'sub',   label:'(-) Despesas Financeiras',             v:[-8200,-8400,-8600,-8800,-9000], pos:false},
+  {t:'sub',   label:'(-) Imposto de Renda / CSLL',          v:[-3900,-4200,-4500,-4700,-5000], pos:false},
+  {t:'total', label:'(=) Lucro / Prej. Líquido',            v:[98200,102800,107996,109800,112740], pos:true, cls:'pos'},
+  {t:'sep'},
+  {t:'group', label:'Resultado Final'},
+  {t:'sub',   label:'(-) Distribuição de Lucros / Pró-Labore', v:[-36000,-36000,-36000,-36000,-36000], pos:false},
+  {t:'total', label:'(=) Lucro / Prej. Final',              v:[62200,66800,71996,73800,76740], pos:true, cls:'pos'},
+];
+
+const groups = {};
+let gIdx = -1;
+
+function buildTable() {
+  const tbody = document.getElementById('dreTbody');
+  tbody.innerHTML = rows.map((r,i) => {
+    if (r.t === 'sep') return `<tr class="r-separator"><td colspan="7"></td></tr>`;
+
+    if (r.t === 'group') {
+      gIdx++;
+      groups[gIdx] = {open: true, rows:[]};
+      return `<tr class="r-group" data-gidx="${gIdx}">
+        <td><button class="exp open" onclick="toggleGroup(${gIdx})" id="exp${gIdx}">▶</button>${r.label}</td>
+        <td colspan="6"></td></tr>`;
+    }
+
+    const total = r.v ? r.v.reduce((a,b)=>a+b,0) : null;
+    const vals = r.v ? r.v.map(v => {
+      if (v === null) return '<td>—</td>';
+      const txt = v < 0 ? neg(v) : C(v);
+      const cls = v < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '');
+      return `<td class="${cls}">${txt}</td>`;
+    }).join('') : '<td></td><td></td><td></td><td></td><td></td>';
+
+    const totalTxt = total !== null ? (total < 0 ? neg(total) : C(total)) : '—';
+    const totalCls = total !== null ? (total < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '')) : '';
+
+    const trClass = r.t === 'total' ? `r-total ${r.cls||''}` : r.t === 'sub2' ? 'r-sub2' : 'r-sub';
+    const dataAttr = `data-g="${gIdx}"`;
+
+    if (gIdx >= 0) groups[gIdx].rows.push(i);
+
+    return `<tr class="${trClass}" ${dataAttr} id="row${i}">
+      <td>${r.label}</td>
+      ${vals}
+      <td class="${totalCls}" style="border-left:2px solid var(--border);font-weight:600">${totalTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleGroup(gIdx) {
+  const btn = document.getElementById(`exp${gIdx}`);
+  const open = btn.classList.toggle('open');
+  document.querySelectorAll(`[data-g="${gIdx}"]`).forEach(tr => {
+    tr.style.display = open ? '' : 'none';
+  });
+}
+
+function expandAll() {
+  Object.keys(groups).forEach(g => {
+    const btn = document.getElementById(`exp${g}`);
+    if (btn && !btn.classList.contains('open')) {
+      btn.classList.add('open');
+      document.querySelectorAll(`[data-g="${g}"]`).forEach(tr => tr.style.display = '');
+    }
+  });
+}
+
+function collapseAll() {
+  Object.keys(groups).forEach(g => {
+    const btn = document.getElementById(`exp${g}`);
+    if (btn && btn.classList.contains('open')) {
+      btn.classList.remove('open');
+      document.querySelectorAll(`[data-g="${g}"]`).forEach(tr => tr.style.display = 'none');
+    }
+  });
+}
+
+function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+
+buildTable();
+updateClock();
+setInterval(updateClock, 30000);
+</script>
+</body>
+</html>

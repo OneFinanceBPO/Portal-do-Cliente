@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — Fluxo de Caixa</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .fluxo-summary { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .fluxo-panel { border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+  .fluxo-panel-hdr { padding:14px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .fluxo-panel-hdr .label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+  .fluxo-panel-hdr .total { font-size:22px; font-weight:700; }
+  .fluxo-panel-body { padding:0 20px 16px; }
+  .fluxo-line { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:12px; }
+  .fluxo-line:last-child { border-bottom:none; }
+  .fluxo-line .name { color:var(--text2); }
+  .fluxo-line .val  { font-weight:600; }
+  .fluxo-line .pct  { font-size:10px; color:var(--text3); margin-left:6px; }
+
+  .saldo-banner { border-radius:12px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border:1px solid; }
+  .saldo-banner.pos { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.2); }
+  .saldo-banner.neg { background:rgba(244,63,94,.08); border-color:rgba(244,63,94,.2); }
+  .saldo-banner .sb-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text2); }
+  .saldo-banner .sb-val   { font-size:28px; font-weight:800; }
+  .saldo-banner.pos .sb-val { color:var(--green); }
+  .saldo-banner.neg .sb-val { color:var(--red); }
+  .saldo-banner .sb-badge { font-size:12px; font-weight:600; padding:4px 10px; border-radius:6px; }
+  .saldo-banner.pos .sb-badge { background:rgba(34,197,94,.15); color:var(--green); }
+
+  /* bar inside table */
+  .inline-bar { display:inline-block; height:6px; border-radius:3px; vertical-align:middle; margin-left:6px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">F</div>
+  <nav>
+    <a href="contas-receber.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg><span class="nav-tooltip">A Receber</span></button></a>
+    <a href="contas-pagar.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg><span class="nav-tooltip">A Pagar</span></button></a>
+    <a href="fluxo-caixa.html"><button class="nav-btn active"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg><span class="nav-tooltip">Fluxo de Caixa</span></button></a>
+    <a href="dre.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span class="nav-tooltip">DRE</span></button></a>
+  </nav>
+  <div class="bottom-nav">
+    <button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="nav-tooltip">Suporte</span></button>
+    <a href="dashboard.html"><button class="nav-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span class="nav-tooltip">Sair</span></button></a>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <span class="logo-text">One <span>Finance</span></span>
+    <div class="divider-v"></div>
+    <span class="page-title">Fluxo de Caixa</span>
+  </div>
+  <div class="header-right">
+    <div class="time-badge"><span class="lbl">Última atualização</span><span id="clock"></span></div>
+    <button class="icon-btn" onclick="toggleFull()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg></button>
+    <div class="avatar">AC</div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="page">
+
+    <!-- FILTERS -->
+    <div class="filter-row">
+      <span class="filter-lbl">Ano</span>
+      <select class="filter-sel"><option>2026</option><option>2025</option><option>2024</option></select>
+      <span class="filter-lbl">Mês</span>
+      <select class="filter-sel">
+        <option value="all">Todos</option>
+        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
+        <option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
+        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+      </select>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Total Recebidos</div>
+        <div class="kpi-val green">R$ 492.760</div>
+        <div class="kpi-footer"><span class="badge up">▲ 8,7%</span><span class="kpi-sub">vs. mês anterior</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total Pagos</div>
+        <div class="kpi-val red">R$ 387.240</div>
+        <div class="kpi-footer"><span class="badge up">▲ 4,3%</span><span class="kpi-sub">vs. mês anterior</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Geração de Caixa</div>
+        <div class="kpi-val green">R$ 105.520</div>
+        <div class="kpi-footer"><span class="badge up">▲ 21,4%</span><span class="kpi-sub">vs. mês anterior</span></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Boletos Recebidos / Pagos</div>
+        <div class="kpi-val blue">189 <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">80</span></div>
+        <div class="kpi-footer"><span class="kpi-sub" style="font-size:10px;">qtde no período</span></div>
+      </div>
+    </div>
+
+    <!-- SALDO BANNER -->
+    <div class="saldo-banner pos">
+      <div>
+        <div class="sb-label">Saldo Acumulado do Período</div>
+        <div class="sb-val">R$ 105.520,00</div>
+      </div>
+      <div style="text-align:right">
+        <div class="sb-badge">▲ Fluxo Positivo</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;">Recebidos superam Pagos em 21,4%</div>
+      </div>
+    </div>
+
+    <!-- ENTRADAS / SAÍDAS LADO A LADO -->
+    <div class="fluxo-summary">
+      <!-- ENTRADAS -->
+      <div class="fluxo-panel" style="background:var(--bg-card)">
+        <div class="fluxo-panel-hdr" style="background:rgba(34,197,94,.06);border-bottom:1px solid rgba(34,197,94,.15)">
+          <div>
+            <div class="label" style="color:var(--green)">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;"></span>
+              Entradas
+            </div>
+            <div class="total" style="color:var(--green)">R$ 492.760</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text2)">189 recebimentos</div>
+            <div style="font-size:11px;color:var(--green);margin-top:2px">▲ 8,7% MoM</div>
+          </div>
+        </div>
+        <div class="fluxo-panel-body">
+          <div class="fluxo-line"><span class="name">Vendas à vista</span><span class="val td-pos">R$ 198.400<span class="pct">40,3%</span></span></div>
+          <div class="fluxo-line"><span class="name">Vendas a prazo</span><span class="val td-pos">R$ 165.200<span class="pct">33,5%</span></span></div>
+          <div class="fluxo-line"><span class="name">Cobranças recebidas</span><span class="val td-pos">R$ 84.960<span class="pct">17,2%</span></span></div>
+          <div class="fluxo-line"><span class="name">Transferências</span><span class="val td-pos">R$ 28.100<span class="pct">5,7%</span></span></div>
+          <div class="fluxo-line"><span class="name">Outros recebimentos</span><span class="val td-pos">R$ 16.100<span class="pct">3,3%</span></span></div>
+        </div>
+      </div>
+
+      <!-- SAÍDAS -->
+      <div class="fluxo-panel" style="background:var(--bg-card)">
+        <div class="fluxo-panel-hdr" style="background:rgba(244,63,94,.06);border-bottom:1px solid rgba(244,63,94,.15)">
+          <div>
+            <div class="label" style="color:var(--red)">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;"></span>
+              Saídas
+            </div>
+            <div class="total" style="color:var(--red)">R$ 387.240</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--text2)">80 pagamentos</div>
+            <div style="font-size:11px;color:var(--red);margin-top:2px">▲ 4,3% MoM</div>
+          </div>
+        </div>
+        <div class="fluxo-panel-body">
+          <div class="fluxo-line"><span class="name">Pessoal (Folha + Encargos)</span><span class="val td-neg">R$ 166.600<span class="pct">43,0%</span></span></div>
+          <div class="fluxo-line"><span class="name">Fornecedores</span><span class="val td-neg">R$ 98.400<span class="pct">25,4%</span></span></div>
+          <div class="fluxo-line"><span class="name">Impostos e Taxas</span><span class="val td-neg">R$ 55.200<span class="pct">14,2%</span></span></div>
+          <div class="fluxo-line"><span class="name">Despesas Fixas</span><span class="val td-neg">R$ 42.840<span class="pct">11,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Outros pagamentos</span><span class="val td-neg">R$ 24.200<span class="pct">6,3%</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART: Evolução Anual -->
+    <div class="chart-card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="chart-title" style="margin:0">Evolução do Fluxo de Caixa — Jan a Dez 2026</div>
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--text2);">
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block"></span>Recebidos</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#f43f5e;display:inline-block"></span>Pagos</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#facc15;display:inline-block"></span>Saldo</span>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:230px"><canvas id="chartFluxo"></canvas></div>
+    </div>
+
+    <!-- TABELA DETALHADA -->
+    <div class="chart-card">
+      <div class="sec-header">
+        <div class="sec-title">Detalhamento por Data de Transação — Maio/2026</div>
+        <span style="font-size:11px;color:var(--text2)">Saldo positivo em verde · Negativo em vermelho</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Recebidos</th>
+              <th style="min-width:120px">Represent. %</th>
+              <th>Pagos</th>
+              <th style="min-width:120px">Represent. %</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody id="tblFluxo"></tbody>
+          <tfoot>
+            <tr style="font-weight:700;border-top:2px solid var(--border)">
+              <td>Total Maio</td>
+              <td class="td-pos">R$ 492.760</td>
+              <td>100%</td>
+              <td class="td-neg">R$ 387.240</td>
+              <td>100%</td>
+              <td class="td-pos">R$ 105.520</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="footer"><div class="footer-dot"></div>One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4</div>
+
+<script>
+Chart.defaults.color = '#8ba0c4';
+Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
+Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+Chart.defaults.font.size = 11;
+
+const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const recebidos = [380200,412500,445800,468300,492760,0,0,0,0,0,0,0];
+const pagos     = [342000,358000,371000,380000,387240,0,0,0,0,0,0,0];
+const saldo     = recebidos.map((r,i)=> r>0 ? r - pagos[i] : null);
+
+new Chart(document.getElementById('chartFluxo'), {
+  type: 'bar',
+  data: {
+    labels: meses,
+    datasets: [
+      { label:'Recebidos', data: recebidos,
+        backgroundColor: ctx => ctx.dataIndex < 5 ? 'rgba(34,197,94,0.75)' : 'rgba(34,197,94,0.2)',
+        borderRadius:4, borderSkipped:false, order:2 },
+      { label:'Pagos', data: pagos,
+        backgroundColor: ctx => ctx.dataIndex < 5 ? 'rgba(244,63,94,0.75)' : 'rgba(244,63,94,0.2)',
+        borderRadius:4, borderSkipped:false, order:2 },
+      { label:'Saldo', data: saldo, type:'line',
+        borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.08)',
+        borderWidth:2, pointRadius:4, pointBackgroundColor:'#facc15',
+        fill:true, tension:0.3, order:1 },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label: ctx=>'R$ '+ctx.raw?.toLocaleString('pt-BR')}}
+    },
+    scales:{
+      x:{grid:{display:false}},
+      y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback: v=>'R$ '+(v/1000).toFixed(0)+'k'}}
+    }
+  }
+});
+
+// Tabela detalhada
+const rows = [
+  {dt:'01/05/2026', rec:18400, pag:14200},
+  {dt:'02/05/2026', rec:22100, pag:8800},
+  {dt:'05/05/2026', rec:31500, pag:72400},
+  {dt:'06/05/2026', rec:19800, pag:4200},
+  {dt:'08/05/2026', rec:28200, pag:9800},
+  {dt:'09/05/2026', rec:14400, pag:6100},
+  {dt:'12/05/2026', rec:42300, pag:22100},
+  {dt:'13/05/2026', rec:18700, pag:7400},
+  {dt:'15/05/2026', rec:38600, pag:18200},
+  {dt:'16/05/2026', rec:21400, pag:9600},
+  {dt:'19/05/2026', rec:44800, pag:28500},
+  {dt:'20/05/2026', rec:29100, pag:32400},
+  {dt:'22/05/2026', rec:36200, pag:14800},
+  {dt:'23/05/2026', rec:18900, pag:8200},
+  {dt:'26/05/2026', rec:52100, pag:22400},
+  {dt:'27/05/2026', rec:24800, pag:11200},
+  {dt:'29/05/2026', rec:19460, pag:36840},
+  {dt:'30/05/2026', rec:12000, pag:0},
+];
+
+const totalRec = rows.reduce((a,r)=>a+r.rec,0);
+const totalPag = rows.reduce((a,r)=>a+r.pag,0);
+
+document.getElementById('tblFluxo').innerHTML = rows.map(r => {
+  const saldo = r.rec - r.pag;
+  const pctRec = totalRec > 0 ? (r.rec/totalRec*100).toFixed(1) : 0;
+  const pctPag = totalPag > 0 ? (r.pag/totalPag*100).toFixed(1) : 0;
+  return `<tr>
+    <td style="color:var(--text2)">${r.dt}</td>
+    <td class="td-pos">${r.rec>0?'R$ '+r.rec.toLocaleString('pt-BR'):'—'}</td>
+    <td>
+      <span style="font-size:11px;color:var(--text2)">${pctRec}%</span>
+      <span class="inline-bar" style="width:${Math.max(pctRec*1.2,2)}px;background:rgba(34,197,94,0.5)"></span>
+    </td>
+    <td class="td-neg">${r.pag>0?'R$ '+r.pag.toLocaleString('pt-BR'):'—'}</td>
+    <td>
+      <span style="font-size:11px;color:var(--text2)">${pctPag}%</span>
+      <span class="inline-bar" style="width:${Math.max(pctPag*1.2,2)}px;background:rgba(244,63,94,0.5)"></span>
+    </td>
+    <td class="${saldo>=0?'td-pos':'td-neg'}">R$ ${Math.abs(saldo).toLocaleString('pt-BR')}</td>
+  </tr>`;
+}).join('');
+
+function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,30000);
+</script>
+</body>
+</html>
