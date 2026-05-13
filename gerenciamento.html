@@ -33,11 +33,11 @@
         <span class="nav-tooltip">Clientes</span>
       </button>
     </a>
-    <button class="nav-btn" title="Perfil" onclick="openPerfil()">
+    <button class="nav-btn" title="Relatórios">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
       </svg>
-      <span class="nav-tooltip">Perfil</span>
+      <span class="nav-tooltip">Relatórios</span>
     </button>
     <button class="nav-btn" title="Suporte">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -146,35 +146,6 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveClient()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: PERFIL -->
-<div class="modal-overlay" id="perfilModal">
-  <div class="modal">
-    <h3>Meu Perfil</h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="form-group">
-        <label class="form-lbl">Nome</label>
-        <input class="form-input" type="text" id="perfilNome" placeholder="Nome" style="padding:10px 14px">
-      </div>
-      <div class="form-group">
-        <label class="form-lbl">Sobrenome</label>
-        <input class="form-input" type="text" id="perfilSobrenome" placeholder="Sobrenome" style="padding:10px 14px">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">E-mail para login</label>
-      <input class="form-input" type="email" id="perfilEmail" placeholder="seu@email.com.br" style="padding:10px 14px">
-    </div>
-    <div class="form-group">
-      <label class="form-lbl">Senha</label>
-      <input class="form-input" type="password" id="perfilSenha" placeholder="••••••••" style="padding:10px 14px">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="savePerfil()">Salvar</button>
     </div>
   </div>
 </div>
@@ -300,26 +271,6 @@ function saveClient() {
 function confirmDelete() {
   clients = clients.filter(x => x.id !== deleteId);
   saveClients(); closeModal(); renderClients(clients);
-}
-
-function openPerfil() {
-  const p = JSON.parse(localStorage.getItem('of_perfil') || '{}');
-  document.getElementById('perfilNome').value = p.nome || '';
-  document.getElementById('perfilSobrenome').value = p.sobrenome || '';
-  document.getElementById('perfilEmail').value = p.email || '';
-  document.getElementById('perfilSenha').value = p.senha || '';
-  document.getElementById('perfilModal').classList.add('open');
-}
-
-function savePerfil() {
-  const p = {
-    nome: document.getElementById('perfilNome').value.trim(),
-    sobrenome: document.getElementById('perfilSobrenome').value.trim(),
-    email: document.getElementById('perfilEmail').value.trim(),
-    senha: document.getElementById('perfilSenha').value,
-  };
-  localStorage.setItem('of_perfil', JSON.stringify(p));
-  closeModal();
 }
 
 // close on overlay click
