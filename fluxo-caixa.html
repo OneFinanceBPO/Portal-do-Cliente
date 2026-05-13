@@ -231,6 +231,17 @@ Chart.defaults.font.size = 11;
 const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
 const _isLimpar = _client.id === 1;
 
+if (!_isLimpar) {
+  document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
+  const sbVal = document.querySelector('.sb-val');
+  if (sbVal) sbVal.textContent = 'R$ 0';
+  const sbBadge = document.querySelector('.sb-badge');
+  if (sbBadge) sbBadge.textContent = '— Sem dados';
+  document.querySelectorAll('.fluxo-panel-hdr .total').forEach(el => { el.textContent = 'R$ 0'; });
+  document.querySelectorAll('.fluxo-line .val').forEach(el => { el.textContent = 'R$ 0'; });
+  document.querySelectorAll('.tbl-wrap tbody tr').forEach(el => el.remove());
+}
+
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const recebidos = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
 const pagos     = _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];

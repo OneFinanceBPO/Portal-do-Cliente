@@ -177,6 +177,11 @@ Chart.defaults.font.size = 11;
 const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
 const _isLimpar = _client.id === 1;
 
+if (!_isLimpar) {
+  document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
+  document.querySelectorAll('.dre-tbl tbody td:not(:first-child)').forEach(el => { el.textContent = '—'; });
+}
+
 // ── CHART ──
 const meses = ['Jan','Fev','Mar','Abr','Mai'];
 new Chart(document.getElementById('chartDRE'), {
