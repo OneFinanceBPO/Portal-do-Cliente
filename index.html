@@ -159,10 +159,6 @@
       document.getElementById('senhaErr').style.display = 'block';
       senha.classList.add('err'); ok = false;
     }
-    if (!rcDone) {
-      document.getElementById('rcErr').style.display = 'block'; ok = false;
-    }
-
     if (ok) {
       // Simulação: ADM vai para gerenciamento, outros para dashboard
       if (email.value.includes('adm') || email.value.includes('onefinance')) {

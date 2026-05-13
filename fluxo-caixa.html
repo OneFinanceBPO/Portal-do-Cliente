@@ -53,6 +53,10 @@
 <!-- HEADER -->
 <header class="header">
   <div class="header-left">
+    <a href="gerenciamento.html" class="icon-btn" title="Voltar para lista de clientes">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="divider-v"></div>
     <span class="logo-text">One <span>Finance</span></span>
     <div class="divider-v"></div>
     <span class="page-title">Fluxo de Caixa</span>
@@ -84,22 +88,22 @@
     <div class="kpi-row">
       <div class="kpi">
         <div class="kpi-label">Total Recebidos</div>
-        <div class="kpi-val green">R$ 492.760</div>
-        <div class="kpi-footer"><span class="badge up">▲ 8,7%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val green">R$ 274.065</div>
+        <div class="kpi-footer"><span class="badge down">▼ 61,7%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Total Pagos</div>
-        <div class="kpi-val red">R$ 387.240</div>
-        <div class="kpi-footer"><span class="badge up">▲ 4,3%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val red">R$ 234.082</div>
+        <div class="kpi-footer"><span class="badge down">▼ 64,4%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Geração de Caixa</div>
-        <div class="kpi-val green">R$ 105.520</div>
-        <div class="kpi-footer"><span class="badge up">▲ 21,4%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val green">R$ 39.982</div>
+        <div class="kpi-footer"><span class="badge down">▼ 29,9%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Boletos Recebidos / Pagos</div>
-        <div class="kpi-val blue">189 <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">80</span></div>
+        <div class="kpi-label">Transações Rec. / Pag.</div>
+        <div class="kpi-val blue">35 <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">203</span></div>
         <div class="kpi-footer"><span class="kpi-sub" style="font-size:10px;">qtde no período</span></div>
       </div>
     </div>
@@ -107,12 +111,12 @@
     <!-- SALDO BANNER -->
     <div class="saldo-banner pos">
       <div>
-        <div class="sb-label">Saldo Acumulado do Período</div>
-        <div class="sb-val">R$ 105.520,00</div>
+        <div class="sb-label">Saldo do Período (Mai/2026 — parcial)</div>
+        <div class="sb-val">R$ 39.982,43</div>
       </div>
       <div style="text-align:right">
         <div class="sb-badge">▲ Fluxo Positivo</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:6px;">Recebidos superam Pagos em 21,4%</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;">Recebidos superam Pagos em 17,1%</div>
       </div>
     </div>
 
@@ -124,21 +128,20 @@
           <div>
             <div class="label" style="color:var(--green)">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;"></span>
-              Entradas
+              Entradas — Mai/2026
             </div>
-            <div class="total" style="color:var(--green)">R$ 492.760</div>
+            <div class="total" style="color:var(--green)">R$ 274.065</div>
           </div>
           <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text2)">189 recebimentos</div>
-            <div style="font-size:11px;color:var(--green);margin-top:2px">▲ 8,7% MoM</div>
+            <div style="font-size:11px;color:var(--text2)">35 recebimentos</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Parcial (12 dias)</div>
           </div>
         </div>
         <div class="fluxo-panel-body">
-          <div class="fluxo-line"><span class="name">Vendas à vista</span><span class="val td-pos">R$ 198.400<span class="pct">40,3%</span></span></div>
-          <div class="fluxo-line"><span class="name">Vendas a prazo</span><span class="val td-pos">R$ 165.200<span class="pct">33,5%</span></span></div>
-          <div class="fluxo-line"><span class="name">Cobranças recebidas</span><span class="val td-pos">R$ 84.960<span class="pct">17,2%</span></span></div>
-          <div class="fluxo-line"><span class="name">Transferências</span><span class="val td-pos">R$ 28.100<span class="pct">5,7%</span></span></div>
-          <div class="fluxo-line"><span class="name">Outros recebimentos</span><span class="val td-pos">R$ 16.100<span class="pct">3,3%</span></span></div>
+          <div class="fluxo-line"><span class="name">Receitas de Serviços</span><span class="val td-pos">R$ 266.040<span class="pct">97,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Outras Entradas</span><span class="val td-pos">R$ 3.024<span class="pct">1,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Integralização de Capital</span><span class="val td-pos">R$ 5.000<span class="pct">1,8%</span></span></div>
+          <div class="fluxo-line"><span class="name">Rendimentos de Aplicações</span><span class="val td-pos">R$ 1<span class="pct">0,0%</span></span></div>
         </div>
       </div>
 
@@ -148,21 +151,22 @@
           <div>
             <div class="label" style="color:var(--red)">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;"></span>
-              Saídas
+              Saídas — Mai/2026
             </div>
-            <div class="total" style="color:var(--red)">R$ 387.240</div>
+            <div class="total" style="color:var(--red)">R$ 234.082</div>
           </div>
           <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text2)">80 pagamentos</div>
-            <div style="font-size:11px;color:var(--red);margin-top:2px">▲ 4,3% MoM</div>
+            <div style="font-size:11px;color:var(--text2)">203 pagamentos</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Parcial (12 dias)</div>
           </div>
         </div>
         <div class="fluxo-panel-body">
-          <div class="fluxo-line"><span class="name">Pessoal (Folha + Encargos)</span><span class="val td-neg">R$ 166.600<span class="pct">43,0%</span></span></div>
-          <div class="fluxo-line"><span class="name">Fornecedores</span><span class="val td-neg">R$ 98.400<span class="pct">25,4%</span></span></div>
-          <div class="fluxo-line"><span class="name">Impostos e Taxas</span><span class="val td-neg">R$ 55.200<span class="pct">14,2%</span></span></div>
-          <div class="fluxo-line"><span class="name">Despesas Fixas</span><span class="val td-neg">R$ 42.840<span class="pct">11,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Outros pagamentos</span><span class="val td-neg">R$ 24.200<span class="pct">6,3%</span></span></div>
+          <div class="fluxo-line"><span class="name">Pessoal (Salários + Benefícios)</span><span class="val td-neg">R$ 170.035<span class="pct">72,6%</span></span></div>
+          <div class="fluxo-line"><span class="name">Prestação de Serviço PJ</span><span class="val td-neg">R$ 30.603<span class="pct">13,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Despesas Financeiras</span><span class="val td-neg">R$ 11.122<span class="pct">4,7%</span></span></div>
+          <div class="fluxo-line"><span class="name">Despesas Administrativas</span><span class="val td-neg">R$ 11.903<span class="pct">5,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Despesas Jurídicas</span><span class="val td-neg">R$ 9.655<span class="pct">4,1%</span></span></div>
+          <div class="fluxo-line"><span class="name">Impostos e Deduções</span><span class="val td-neg">R$ 362<span class="pct">0,2%</span></span></div>
         </div>
       </div>
     </div>
@@ -201,12 +205,12 @@
           <tbody id="tblFluxo"></tbody>
           <tfoot>
             <tr style="font-weight:700;border-top:2px solid var(--border)">
-              <td>Total Maio</td>
-              <td class="td-pos">R$ 492.760</td>
+              <td>Total Maio (parcial)</td>
+              <td class="td-pos">R$ 274.064,88</td>
               <td>100%</td>
-              <td class="td-neg">R$ 387.240</td>
+              <td class="td-neg">R$ 234.082,45</td>
               <td>100%</td>
-              <td class="td-pos">R$ 105.520</td>
+              <td class="td-pos">R$ 39.982,43</td>
             </tr>
           </tfoot>
         </table>
@@ -225,8 +229,8 @@ Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const recebidos = [380200,412500,445800,468300,492760,0,0,0,0,0,0,0];
-const pagos     = [342000,358000,371000,380000,387240,0,0,0,0,0,0,0];
+const recebidos = [482725,603943,717424,715659,274065,0,0,0,0,0,0,0];
+const pagos     = [473639,604692,723026,658674,234082,0,0,0,0,0,0,0];
 const saldo     = recebidos.map((r,i)=> r>0 ? r - pagos[i] : null);
 
 new Chart(document.getElementById('chartFluxo'), {
@@ -261,24 +265,13 @@ new Chart(document.getElementById('chartFluxo'), {
 
 // Tabela detalhada
 const rows = [
-  {dt:'01/05/2026', rec:18400, pag:14200},
-  {dt:'02/05/2026', rec:22100, pag:8800},
-  {dt:'05/05/2026', rec:31500, pag:72400},
-  {dt:'06/05/2026', rec:19800, pag:4200},
-  {dt:'08/05/2026', rec:28200, pag:9800},
-  {dt:'09/05/2026', rec:14400, pag:6100},
-  {dt:'12/05/2026', rec:42300, pag:22100},
-  {dt:'13/05/2026', rec:18700, pag:7400},
-  {dt:'15/05/2026', rec:38600, pag:18200},
-  {dt:'16/05/2026', rec:21400, pag:9600},
-  {dt:'19/05/2026', rec:44800, pag:28500},
-  {dt:'20/05/2026', rec:29100, pag:32400},
-  {dt:'22/05/2026', rec:36200, pag:14800},
-  {dt:'23/05/2026', rec:18900, pag:8200},
-  {dt:'26/05/2026', rec:52100, pag:22400},
-  {dt:'27/05/2026', rec:24800, pag:11200},
-  {dt:'29/05/2026', rec:19460, pag:36840},
-  {dt:'30/05/2026', rec:12000, pag:0},
+  {dt:'04/05/2026', rec:58681.84,  pag:23215.86},
+  {dt:'05/05/2026', rec:102114.09, pag:4962.61},
+  {dt:'06/05/2026', rec:17340.09,  pag:24665.98},
+  {dt:'07/05/2026', rec:12574.30,  pag:142067.02},
+  {dt:'08/05/2026', rec:25469.89,  pag:20014.99},
+  {dt:'11/05/2026', rec:44012.42,  pag:18488.56},
+  {dt:'12/05/2026', rec:13872.25,  pag:667.43},
 ];
 
 const totalRec = rows.reduce((a,r)=>a+r.rec,0);

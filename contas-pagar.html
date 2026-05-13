@@ -39,6 +39,10 @@
 <!-- HEADER -->
 <header class="header">
   <div class="header-left">
+    <a href="gerenciamento.html" class="icon-btn" title="Voltar para lista de clientes">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="divider-v"></div>
     <span class="logo-text">One <span>Finance</span></span>
     <div class="divider-v"></div>
     <span class="page-title">Contas a Pagar</span>
@@ -78,23 +82,23 @@
     <div class="kpi-row">
       <div class="kpi">
         <div class="kpi-label">Transações Pagos</div>
-        <div class="kpi-val green">R$ 387.240</div>
-        <div class="kpi-footer"><span class="badge up">▲ 4,3%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val green">R$ 234.082</div>
+        <div class="kpi-footer"><span class="badge down">▼ 64,4%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Transações A Pagar</div>
-        <div class="kpi-val blue">R$ 124.580</div>
-        <div class="kpi-footer"><span class="badge down">▼ 2,1%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val blue">R$ 427.899</div>
+        <div class="kpi-footer"><span class="badge neutral">— em aberto</span><span class="kpi-sub">Mai/2026</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Valor Médio Pago</div>
-        <div class="kpi-val red">R$ 4.840</div>
-        <div class="kpi-footer"><span class="badge up">▲ 1,8%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-label">Transações Atrasadas</div>
+        <div class="kpi-val red">R$ 7.060</div>
+        <div class="kpi-footer"><span class="badge down">▼ 29,4%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Total do Período</div>
-        <div class="kpi-val">R$ 511.820</div>
-        <div class="kpi-footer"><span class="badge up">▲ 3,5%</span><span class="kpi-sub">vs. mês anterior</span></div>
+        <div class="kpi-val">R$ 669.041</div>
+        <div class="kpi-footer"><span class="badge up">▲ 1,6%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
     </div>
 
@@ -158,7 +162,7 @@ new Chart(document.getElementById('chartPagos'), {
   data: {
     labels: meses,
     datasets: [{
-      data: [342000,358000,371000,380000,387240,0,0,0,0,0,0,0],
+      data: [473639,604692,723026,658674,234082,0,0,0,0,0,0,0],
       backgroundColor: ctx => ctx.dataIndex < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)',
       borderRadius: 5, borderSkipped: false,
     }]
@@ -177,9 +181,9 @@ new Chart(document.getElementById('chartPagos'), {
 new Chart(document.getElementById('chartCat'), {
   type: 'bar',
   data: {
-    labels: ['Pró-Labore','Salários','Transferências','Adiant. Salarial','Simples Nacional','INSS','Empréstimos','Aluguel','Energia','Fornecedores'],
+    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Vale-Transporte','ASSIDUIDADE','Pró-labore','Simples Nacional','Ações Trabalhistas','FGTS'],
     datasets: [{
-      data: [85000,72400,48200,32000,28500,22100,18700,14400,9800,7340],
+      data: [663268,561604,220000,209332,105779,68325,64355,61509,61378,61094],
       backgroundColor: [
         '#2563eb','#3b82f6','#60a5fa','#93c5fd',
         '#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'
@@ -200,16 +204,18 @@ new Chart(document.getElementById('chartCat'), {
 
 // Tabela A Pagar
 const contas = [
-  {desc:'Folha de Pagamento — Maio/2026',  cat:'Salários',          venc:'05/05/2026', val:72400, status:'vencer'},
-  {desc:'INSS Competência 04/2026',         cat:'INSS',              venc:'20/05/2026', val:22100, status:'vencer'},
-  {desc:'Simples Nacional — Abr/2026',      cat:'Simples Nacional',  venc:'20/05/2026', val:28500, status:'vencer'},
-  {desc:'Aluguel Sede — Maio',              cat:'Aluguel',           venc:'10/05/2026', val:14400, status:'vencer'},
-  {desc:'Parcelamento Banco do Brasil',     cat:'Empréstimos',       venc:'15/05/2026', val:6200,  status:'vencer'},
-  {desc:'Energia Elétrica — Abril',         cat:'Energia',           venc:'08/05/2026', val:4800,  status:'vencer'},
-  {desc:'Adiantamento Salarial',            cat:'Adiant. Salarial',  venc:'25/05/2026', val:32000, status:'futuro'},
-  {desc:'Pró-Labore Sócios',               cat:'Pró-Labore',        venc:'30/05/2026', val:85000, status:'futuro'},
-  {desc:'Fornecedor ABC Ltda',              cat:'Fornecedores',      venc:'28/05/2026', val:7340,  status:'futuro'},
-  {desc:'Internet e Telefonia',             cat:'Serviços',          venc:'12/05/2026', val:2100,  status:'vencer'},
+  {desc:'Salários — Maio/2026',              cat:'Salários',             venc:'07/05/2026', val:137430, status:'vencer'},
+  {desc:'Vale-Refeição — Maio/2026',         cat:'Vale-Refeição',        venc:'05/05/2026', val:61355,  status:'vencer'},
+  {desc:'Prestação de Serviço PJ',           cat:'Prest. Serv. PJ',      venc:'15/05/2026', val:30603,  status:'vencer'},
+  {desc:'Pró-labore — Maio/2026',            cat:'Pró-labore',           venc:'30/05/2026', val:16037,  status:'futuro'},
+  {desc:'Vale-Transporte — Maio/2026',       cat:'Vale-Transporte',      venc:'05/05/2026', val:19739,  status:'vencer'},
+  {desc:'Honorários Advocatícios',           cat:'Honorários',           venc:'20/05/2026', val:8155,   status:'vencer'},
+  {desc:'Empréstimo Outra Instituição',      cat:'Empréstimos',          venc:'25/05/2026', val:8000,   status:'futuro'},
+  {desc:'Juros Conta Garantida',             cat:'Financeiro',           venc:'31/05/2026', val:3122,   status:'futuro'},
+  {desc:'Software / Licença de Uso',         cat:'Software',             venc:'20/05/2026', val:1513,   status:'vencer'},
+  {desc:'Imposto Municipal — Maio',          cat:'Impostos Municipais',  venc:'31/05/2026', val:362,    status:'futuro'},
+  {desc:'Manutenção Predial',                cat:'Manutenção',           venc:'20/05/2026', val:280,    status:'futuro'},
+  {desc:'Ações Trabalhistas — Parcela',      cat:'Ações Trabalhistas',   venc:'15/05/2026', val:1500,   status:'vencer'},
 ];
 
 document.getElementById('tblPagar').innerHTML = contas.map(c => `
