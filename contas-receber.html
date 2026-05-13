@@ -207,16 +207,34 @@ const recVal = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : 
 const recQtd = _isLimpar ? [36,49,62,56,35,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
 
 if (!_isLimpar) {
-  document.getElementById('kpiVencida').textContent = 'R$ 0';
-  document.getElementById('kpiAVencer').textContent = 'R$ 0';
+  document.getElementById('kpiVencida').textContent  = 'R$ 0';
+  document.getElementById('kpiAVencer').textContent  = 'R$ 0';
   document.getElementById('kpiRecebida').textContent = 'R$ 0';
-  document.getElementById('kpiTotal').textContent = 'R$ 0';
+  document.getElementById('kpiTotal').textContent    = 'R$ 0';
 }
+
+// KPIs por mês
+const kpisRecMes = {
+  all: { vencidas:131282, aVencer:136540, recebidas:2793816, total:3061638 },
+  1:   { vencidas:0,      aVencer:0,      recebidas:482725,  total:482725  },
+  2:   { vencidas:0,      aVencer:0,      recebidas:603943,  total:603943  },
+  3:   { vencidas:0,      aVencer:0,      recebidas:717424,  total:717424  },
+  4:   { vencidas:44010,  aVencer:0,      recebidas:715659,  total:759669  },
+  5:   { vencidas:87272,  aVencer:136540, recebidas:274065,  total:497876  },
+};
+
+// Donut % por mês [A Vencer, Recebidos, Vencidos, Perda]
+const donutMes = {
+  all: [4.5, 91.2, 4.3, 0],
+  1:   [0, 100.0, 0, 0],
+  2:   [0, 100.0, 0, 0],
+  3:   [0, 100.0, 0, 0],
+  4:   [0, 94.2, 5.8, 0],
+  5:   [27.4, 55.0, 17.5, 0.1],
+};
 
 let mode = 'val';
 let chartRecebidos, chartDonut, chartAberto;
-
-function fmt(v) { return v > 0 ? 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:0}) : '—'; }
 
 function setToggle(m) {
   mode = m;
@@ -226,78 +244,90 @@ function setToggle(m) {
 }
 
 function updateData() {
+  const mesVal = document.getElementById('selMes').value;
+  const mesKey = mesVal === 'all' ? 'all' : parseInt(mesVal);
+  const selIdx = mesVal === 'all' ? null : parseInt(mesVal) - 1;
+
+  // Bar chart: val/qtd + highlight mês selecionado
   const data = mode === 'val' ? recVal : recQtd;
-  const prefix = mode === 'val' ? 'R$ ' : '';
   chartRecebidos.data.datasets[0].data = data;
+  chartRecebidos.data.datasets[0].backgroundColor = data.map((_, i) => {
+    if (selIdx === null) return i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)';
+    return i === selIdx ? '#2563eb' : 'rgba(59,130,246,0.15)';
+  });
   chartRecebidos.options.plugins.tooltip.callbacks.label = ctx =>
-    prefix + (mode==='val' ? ctx.raw.toLocaleString('pt-BR') : ctx.raw);
+    (mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos');
   chartRecebidos.update();
+
+  // KPIs
+  if (_isLimpar) {
+    const k = kpisRecMes[mesKey] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
+    document.getElementById('kpiVencida').textContent  = 'R$ ' + k.vencidas.toLocaleString('pt-BR');
+    document.getElementById('kpiAVencer').textContent  = 'R$ ' + k.aVencer.toLocaleString('pt-BR');
+    document.getElementById('kpiRecebida').textContent = 'R$ ' + k.recebidas.toLocaleString('pt-BR');
+    document.getElementById('kpiTotal').textContent    = 'R$ ' + k.total.toLocaleString('pt-BR');
+  }
+
+  // Donut
+  const dd = _isLimpar ? (donutMes[mesKey] || [0,0,0,0]) : [25,25,25,25];
+  chartDonut.data.datasets[0].data = dd;
+  chartDonut.update();
+
+  // Em Aberto: highlight mês selecionado
+  chartAberto.data.datasets[0].backgroundColor = meses.map((_, i) =>
+    selIdx === null || i === selIdx ? '#2563eb' : 'rgba(59,130,246,0.15)');
+  chartAberto.data.datasets[1].backgroundColor = meses.map((_, i) =>
+    selIdx === null || i === selIdx ? '#f43f5e' : 'rgba(244,63,94,0.15)');
+  chartAberto.update();
 }
 
 function initCharts() {
-  // Bar: Recebidos
   chartRecebidos = new Chart(document.getElementById('chartRecebidos'), {
     type: 'bar',
     data: {
       labels: meses,
-      datasets: [{
-        data: recVal,
-        backgroundColor: ctx => ctx.dataIndex < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)',
-        borderRadius: 5, borderSkipped: false,
-      }]
+      datasets: [{ data: recVal, backgroundColor: recVal.map((_,i) => i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)'), borderRadius: 5, borderSkipped: false }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => 'R$ ' + ctx.raw.toLocaleString('pt-BR') }}},
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label: ctx => 'R$ ' + ctx.raw.toLocaleString('pt-BR')}}},
       scales: {
-        x: { grid: { display: false }},
-        y: { grid: { color: 'rgba(59,130,246,0.07)' },
-          ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }}
+        x:{grid:{display:false}},
+        y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback: v => 'R$ '+(v/1000).toFixed(0)+'k'}}
       }
     }
   });
 
-  // Donut: % Status
   chartDonut = new Chart(document.getElementById('chartDonut'), {
     type: 'doughnut',
     data: {
       labels: ['A Vencer','Recebidos','Vencidos','Perda'],
-      datasets: [{
-        data: _isLimpar ? [27.4, 55.0, 17.5, 0.1] : [25, 25, 25, 25],
-        backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'],
-        borderWidth: 0, hoverOffset: 6,
-      }]
+      datasets: [{ data: _isLimpar ? [27.4,55.0,17.5,0.1] : [25,25,25,25], backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'], borderWidth:0, hoverOffset:6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      responsive: true, maintainAspectRatio: false, cutout:'68%',
       plugins: {
-        legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyleWidth: 8 }},
-        tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '%' }}
+        legend:{position:'bottom', labels:{padding:12, usePointStyle:true, pointStyleWidth:8}},
+        tooltip:{callbacks:{label: ctx => ctx.label + ': ' + ctx.raw + '%'}}
       }
     }
   });
 
-  // Grouped Bar: Em Aberto
   chartAberto = new Chart(document.getElementById('chartAberto'), {
     type: 'bar',
     data: {
       labels: meses,
       datasets: [
-        { label: 'A Vencer', data: _isLimpar ? [0,0,0,0,136540,567409,567409,567409,567409,563520,563520,563520] : [0,0,0,0,0,0,0,0,0,0,0,0],
-          backgroundColor: '#2563eb', borderRadius: 4, borderSkipped: false },
-        { label: 'Vencidos', data: _isLimpar ? [0,0,0,44010,87272,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
-          backgroundColor: '#f43f5e', borderRadius: 4, borderSkipped: false },
+        { label:'A Vencer', data: _isLimpar ? [0,0,0,0,136540,567409,567409,567409,567409,563520,563520,563520] : [0,0,0,0,0,0,0,0,0,0,0,0], backgroundColor:'#2563eb', borderRadius:4, borderSkipped:false },
+        { label:'Vencidos', data: _isLimpar ? [0,0,0,44010,87272,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0], backgroundColor:'#f43f5e', borderRadius:4, borderSkipped:false },
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': R$ ' + ctx.raw.toLocaleString('pt-BR') }}},
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label: ctx => ctx.dataset.label+': R$ '+ctx.raw.toLocaleString('pt-BR')}}},
       scales: {
-        x: { grid: { display: false }},
-        y: { grid: { color: 'rgba(59,130,246,0.07)' },
-          ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }}
+        x:{grid:{display:false}},
+        y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback: v => 'R$ '+(v/1000).toFixed(0)+'k'}}
       }
     }
   });
@@ -307,7 +337,6 @@ function toggleFull() {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
   else document.exitFullscreen();
 }
-
 function updateClock() {
   const now = new Date();
   document.getElementById('clock').textContent =

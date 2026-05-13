@@ -62,13 +62,13 @@
     <!-- FILTERS + TOGGLE -->
     <div class="filter-row">
       <span class="filter-lbl">Ano</span>
-      <select class="filter-sel"><option>2026</option><option>2025</option><option>2024</option></select>
+      <select class="filter-sel" id="selAno" onchange="updateMes()"><option>2026</option><option>2025</option><option>2024</option></select>
       <span class="filter-lbl">Mês</span>
-      <select class="filter-sel">
+      <select class="filter-sel" id="selMes" onchange="updateMes()">
         <option value="all">Todos</option>
-        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
-        <option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
-        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option>
+        <option value="5" selected>Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
       </select>
       <div style="margin-left:auto;">
         <div class="toggle">
@@ -82,22 +82,22 @@
     <div class="kpi-row">
       <div class="kpi">
         <div class="kpi-label">Transações Pagos</div>
-        <div class="kpi-val green">R$ 234.082</div>
+        <div class="kpi-val green" id="kpiPagos">R$ 234.082</div>
         <div class="kpi-footer"><span class="badge down">▼ 64,4%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Transações A Pagar</div>
-        <div class="kpi-val blue">R$ 427.899</div>
+        <div class="kpi-val blue" id="kpiAPagar">R$ 427.899</div>
         <div class="kpi-footer"><span class="badge neutral">— em aberto</span><span class="kpi-sub">Mai/2026</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Transações Atrasadas</div>
-        <div class="kpi-val red">R$ 7.060</div>
+        <div class="kpi-val red" id="kpiAtrasadas">R$ 7.060</div>
         <div class="kpi-footer"><span class="badge down">▼ 29,4%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Total do Período</div>
-        <div class="kpi-val">R$ 669.041</div>
+        <div class="kpi-val" id="kpiTotal">R$ 669.041</div>
         <div class="kpi-footer"><span class="badge up">▲ 1,6%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
     </div>
@@ -118,7 +118,7 @@
     <div class="chart-card">
       <div class="sec-header">
         <div class="sec-title">Contas a Pagar — Próximos Vencimentos</div>
-        <span style="font-size:11px;color:var(--text2);">12 contas pendentes</span>
+        <span style="font-size:11px;color:var(--text2);" id="qtdPendentes">12 contas pendentes</span>
       </div>
       <div class="tbl-wrap">
         <table>
@@ -163,16 +163,115 @@ function setToggle(m) {
   document.getElementById('togQtd').classList.toggle('on', m==='qtd');
 }
 
-// Bar: Pagos por mês
-new Chart(document.getElementById('chartPagos'), {
+// KPIs por mês
+const kpisMes = {
+  all: { pagos:2694113, aPagar:427899, atrasadas:17060, total:3139072 },
+  1:   { pagos:473639,  aPagar:0,      atrasadas:0,     total:473639  },
+  2:   { pagos:604692,  aPagar:0,      atrasadas:0,     total:604692  },
+  3:   { pagos:723026,  aPagar:0,      atrasadas:0,     total:723026  },
+  4:   { pagos:658674,  aPagar:0,      atrasadas:10000, total:668674  },
+  5:   { pagos:234082,  aPagar:427899, atrasadas:7060,  total:669041  },
+};
+
+// Categorias por mês
+const catsMes = {
+  all: {
+    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','Vale-Transporte','ASSIDUIDADE','Simples Nacional','FGTS','Ações Trabalhistas','Pró-labore'],
+    data:   [664861,565604,284915,220000,105779,86355,85363,78847,67455,64355]
+  },
+  1: {
+    labels: ['Prest. Serv. PJ','Salários','Vale-Refeição','Simples Nacional','Vale-Transporte','ASSIDUIDADE','FGTS','Honorários','Vale-Alimentação','Férias'],
+    data:   [170118,97339,40449,34362,31871,17100,11779,9000,8970,7950]
+  },
+  2: {
+    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Vale-Transporte','Retenções DARF','Rescisões','FGTS','Pró-labore','ASSIDUIDADE'],
+    data:   [126785,122775,70000,41307,36692,19832,18278,15497,15300,14505]
+  },
+  3: {
+    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Ações Trabalhistas','Retenções DARF','Vale-Transporte','ASSIDUIDADE','FGTS','Pró-labore'],
+    data:   [133281,131578,120000,61355,42127,39687,19739,18825,16352,16000]
+  },
+  4: {
+    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','INSS sobre Salários','Simples Nacional','Retenções DARF','ASSIDUIDADE','FGTS','Vale-Transporte'],
+    data:   [168433,106530,61404,30000,27571,23755,21800,17895,17466,16290]
+  },
+  5: {
+    labels: ['Salários','Remuneração Autônomos','Vale-Refeição','Retenções DARF','Prest. Serv. PJ','Simples Nacional','ASSIDUIDADE','FGTS','Honorários','Pró-labore'],
+    data:   [139023,118700,80400,40000,34603,23853,18030,17754,17676,16037]
+  },
+};
+
+// Contas pendentes por mês
+const contasMes = {
+  all: [
+    {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',         venc:'29/05/2026', val:40103,  status:'vencer'},
+    {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',        venc:'25/05/2026', val:40000,  status:'vencer'},
+    {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',         venc:'15/05/2026', val:35000,  status:'vencer'},
+    {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos', venc:'29/05/2026', val:30000,  status:'vencer'},
+    {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',      venc:'20/05/2026', val:23331,  status:'vencer'},
+    {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',           venc:'20/05/2026', val:18030,  status:'vencer'},
+    {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                  venc:'20/05/2026', val:17754,  status:'vencer'},
+    {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',          venc:'20/05/2026', val:15323,  status:'vencer'},
+    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'15/05/2026', val:14000,  status:'vencer'},
+    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'22/05/2026', val:13733,  status:'futuro'},
+    {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',   venc:'20/05/2026', val:13362,  status:'vencer'},
+    {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',      venc:'20/05/2026', val:12000,  status:'vencer'},
+  ],
+  1: [], 2: [], 3: [],
+  4: [
+    {desc:'13° Salário — Provisão LimPar', cat:'Encargos Trabalhistas', venc:'30/04/2026', val:10000, status:'atrasado'},
+  ],
+  5: [
+    {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',         venc:'29/05/2026', val:40103,  status:'vencer'},
+    {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',        venc:'25/05/2026', val:40000,  status:'vencer'},
+    {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',         venc:'15/05/2026', val:35000,  status:'vencer'},
+    {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos', venc:'29/05/2026', val:30000,  status:'vencer'},
+    {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',      venc:'20/05/2026', val:23331,  status:'vencer'},
+    {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',           venc:'20/05/2026', val:18030,  status:'vencer'},
+    {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                  venc:'20/05/2026', val:17754,  status:'vencer'},
+    {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',          venc:'20/05/2026', val:15323,  status:'vencer'},
+    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'15/05/2026', val:14000,  status:'vencer'},
+    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'22/05/2026', val:13733,  status:'futuro'},
+    {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',   venc:'20/05/2026', val:13362,  status:'vencer'},
+    {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',      venc:'20/05/2026', val:12000,  status:'vencer'},
+  ],
+};
+
+const pagosBar = _isLimpar ? [462915,592808,702917,658674,233415,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+
+function barColors(selIdx) {
+  return pagosBar.map((_, i) => {
+    if (selIdx === null) return i < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)';
+    return i === selIdx ? '#f43f5e' : 'rgba(244,63,94,0.15)';
+  });
+}
+
+function renderTable(lista) {
+  const n = lista.length;
+  document.getElementById('qtdPendentes').textContent = n + ' conta' + (n !== 1 ? 's' : '') + ' pendente' + (n !== 1 ? 's' : '');
+  document.getElementById('tblPagar').innerHTML = n === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">Todos os pagamentos foram realizados neste mês</td></tr>'
+    : lista.map(c => `
+      <tr>
+        <td>${c.desc}</td>
+        <td><span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(59,130,246,0.1);color:var(--accent2)">${c.cat}</span></td>
+        <td style="color:var(--text2)">${c.venc}</td>
+        <td class="td-neg">R$ ${c.val.toLocaleString('pt-BR')}</td>
+        <td><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;
+          background:${c.status==='vencer'?'rgba(251,146,60,0.12)':c.status==='atrasado'?'rgba(244,63,94,0.12)':'rgba(59,130,246,0.1)'};
+          color:${c.status==='vencer'?'#fb923c':c.status==='atrasado'?'#f43f5e':'var(--accent2)'}">
+          ${c.status==='vencer'?'A Vencer':c.status==='atrasado'?'Atrasado':'Futuro'}
+        </span></td>
+      </tr>`).join('');
+}
+
+const CAT_COLORS = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'];
+
+let chartPagos = new Chart(document.getElementById('chartPagos'), {
   type: 'bar',
   data: {
     labels: meses,
-    datasets: [{
-      data: _isLimpar ? [462915,592808,702917,658674,233415,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
-      backgroundColor: ctx => ctx.dataIndex < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)',
-      borderRadius: 5, borderSkipped: false,
-    }]
+    datasets: [{ data: pagosBar, backgroundColor: barColors(null), borderRadius: 5, borderSkipped: false }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
@@ -184,23 +283,14 @@ new Chart(document.getElementById('chartPagos'), {
   }
 });
 
-// Horizontal Bar: Categorias
-new Chart(document.getElementById('chartCat'), {
+let chartCat = new Chart(document.getElementById('chartCat'), {
   type: 'bar',
   data: {
-    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','Vale-Transporte','ASSIDUIDADE','Simples Nacional','FGTS','Ações Trabalhistas','Pró-labore'],
-    datasets: [{
-      data: _isLimpar ? [664861,565604,284915,220000,105779,86355,85363,78847,67455,64355] : [0,0,0,0,0,0,0,0,0,0],
-      backgroundColor: [
-        '#2563eb','#3b82f6','#60a5fa','#93c5fd',
-        '#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'
-      ],
-      borderRadius: 4, borderSkipped: false,
-    }]
+    labels: catsMes.all.labels,
+    datasets: [{ data: _isLimpar ? catsMes.all.data : catsMes.all.data.map(()=>0), backgroundColor: CAT_COLORS, borderRadius: 4, borderSkipped: false }]
   },
   options: {
-    indexAxis: 'y',
-    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
     plugins: { legend:{display:false}, tooltip:{callbacks:{label: ctx=>'R$ '+ctx.raw.toLocaleString('pt-BR')}}},
     scales: {
       x:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback: v=>'R$ '+(v/1000).toFixed(0)+'k'}},
@@ -209,35 +299,30 @@ new Chart(document.getElementById('chartCat'), {
   }
 });
 
-// Tabela A Pagar
-const contas = _isLimpar ? [
-  {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',        venc:'29/05/2026', val:40103,  status:'vencer'},
-  {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',       venc:'25/05/2026', val:40000,  status:'vencer'},
-  {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',        venc:'15/05/2026', val:35000,  status:'vencer'},
-  {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos',venc:'29/05/2026', val:30000,  status:'vencer'},
-  {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',     venc:'20/05/2026', val:23331,  status:'vencer'},
-  {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',          venc:'20/05/2026', val:18030,  status:'vencer'},
-  {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                 venc:'20/05/2026', val:17754,  status:'vencer'},
-  {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',         venc:'20/05/2026', val:15323,  status:'vencer'},
-  {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos',venc:'15/05/2026', val:14000,  status:'vencer'},
-  {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos',venc:'22/05/2026', val:13733,  status:'futuro'},
-  {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',  venc:'20/05/2026', val:13362,  status:'vencer'},
-  {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',     venc:'20/05/2026', val:12000,  status:'vencer'},
-] : [];
+renderTable(_isLimpar ? contasMes[5] : []);
 
-document.getElementById('tblPagar').innerHTML = contas.map(c => `
-  <tr>
-    <td>${c.desc}</td>
-    <td><span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(59,130,246,0.1);color:var(--accent2)">${c.cat}</span></td>
-    <td style="color:var(--text2)">${c.venc}</td>
-    <td class="td-neg">R$ ${c.val.toLocaleString('pt-BR')}</td>
-    <td><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;
-      background:${c.status==='vencer'?'rgba(251,146,60,0.12)':'rgba(59,130,246,0.1)'};
-      color:${c.status==='vencer'?'#fb923c':'var(--accent2)'}">
-      ${c.status==='vencer'?'A Vencer':'Futuro'}
-    </span></td>
-  </tr>
-`).join('');
+function updateMes() {
+  if (!_isLimpar) return;
+  const val = document.getElementById('selMes').value;
+  const key = val === 'all' ? 'all' : parseInt(val);
+  const selIdx = val === 'all' ? null : parseInt(val) - 1;
+
+  const k = kpisMes[key] || { pagos:0, aPagar:0, atrasadas:0, total:0 };
+  document.getElementById('kpiPagos').textContent     = 'R$ ' + k.pagos.toLocaleString('pt-BR');
+  document.getElementById('kpiAPagar').textContent    = 'R$ ' + k.aPagar.toLocaleString('pt-BR');
+  document.getElementById('kpiAtrasadas').textContent = 'R$ ' + k.atrasadas.toLocaleString('pt-BR');
+  document.getElementById('kpiTotal').textContent     = 'R$ ' + k.total.toLocaleString('pt-BR');
+
+  chartPagos.data.datasets[0].backgroundColor = barColors(selIdx);
+  chartPagos.update();
+
+  const cats = catsMes[key] || { labels:[], data:[] };
+  chartCat.data.labels = cats.labels;
+  chartCat.data.datasets[0].data = cats.data;
+  chartCat.update();
+
+  renderTable(contasMes[key] !== undefined ? contasMes[key] : []);
+}
 
 function toggleFull() {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen();
