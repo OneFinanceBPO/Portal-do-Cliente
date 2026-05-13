@@ -160,7 +160,7 @@
       senha.classList.add('err'); ok = false;
     }
     if (ok) {
-      // Simulação: ADM vai para gerenciamento, outros para dashboard
+      localStorage.setItem('of_login_email', email.value.trim());
       if (email.value.includes('adm') || email.value.includes('onefinance')) {
         window.location.href = 'gerenciamento.html';
       } else {

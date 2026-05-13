@@ -85,14 +85,8 @@
 
     <!-- TOP BAR -->
     <div class="top-bar">
-      <div class="search">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        <input type="text" id="searchInput" placeholder="Pesquisar grupos..." oninput="filterClients()">
-      </div>
-      <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
-        <span style="font-size:12px; color:var(--text2);" id="countLabel">9 clientes cadastrados</span>
+      <div style="display:flex; gap:10px; align-items:center; margin-left:auto;">
+        <span style="font-size:12px; color:var(--text2);" id="countLabel"></span>
         <button class="btn btn-primary" onclick="openAddModal()">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -248,9 +242,13 @@ function renderClients(list) {
   document.getElementById('countLabel').textContent = `${list.length} cliente${list.length !== 1 ? 's' : ''} cadastrado${list.length !== 1 ? 's' : ''}`;
 }
 
-function filterClients() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  renderClients(clients.filter(c => c.name.toLowerCase().includes(q) || c.segment.toLowerCase().includes(q)));
+function getVisibleClients() {
+  const loginEmail = localStorage.getItem('of_login_email') || '';
+  const isAdm = loginEmail.includes('adm') || loginEmail.includes('onefinance') || !loginEmail;
+  if (isAdm) return clients;
+  const perfil = JSON.parse(localStorage.getItem('of_perfil') || '{}');
+  if (!perfil.acesso || perfil.acesso.length === 0) return clients;
+  return clients.filter(c => perfil.acesso.includes(c.id));
 }
 
 function goClient(id) {
@@ -301,12 +299,12 @@ function saveClient() {
   } else {
     clients.push({ id: Date.now(), name, segment: seg, cnpj: cnpj || '00.000.000/0001-00' });
   }
-  saveClients(); closeModal(); renderClients(clients);
+  saveClients(); closeModal(); renderClients(getVisibleClients());
 }
 
 function confirmDelete() {
   clients = clients.filter(x => x.id !== deleteId);
-  saveClients(); closeModal(); renderClients(clients);
+  saveClients(); closeModal(); renderClients(getVisibleClients());
 }
 
 function openPerfil() {
@@ -361,7 +359,7 @@ function updateClock() {
 }
 updateClock(); setInterval(updateClock, 30000);
 
-renderClients(clients);
+renderClients(getVisibleClients());
 </script>
 </body>
 </html>
