@@ -147,6 +147,9 @@ Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
 Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
+const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
+const _isLimpar = _client.id === 1;
+
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let mode = 'val';
 
@@ -162,7 +165,7 @@ new Chart(document.getElementById('chartPagos'), {
   data: {
     labels: meses,
     datasets: [{
-      data: [473639,604692,723026,658674,234082,0,0,0,0,0,0,0],
+      data: _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
       backgroundColor: ctx => ctx.dataIndex < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)',
       borderRadius: 5, borderSkipped: false,
     }]
@@ -183,7 +186,7 @@ new Chart(document.getElementById('chartCat'), {
   data: {
     labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Vale-Transporte','ASSIDUIDADE','Pró-labore','Simples Nacional','Ações Trabalhistas','FGTS'],
     datasets: [{
-      data: [663268,561604,220000,209332,105779,68325,64355,61509,61378,61094],
+      data: _isLimpar ? [663268,561604,220000,209332,105779,68325,64355,61509,61378,61094] : [0,0,0,0,0,0,0,0,0,0],
       backgroundColor: [
         '#2563eb','#3b82f6','#60a5fa','#93c5fd',
         '#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'
@@ -203,7 +206,7 @@ new Chart(document.getElementById('chartCat'), {
 });
 
 // Tabela A Pagar
-const contas = [
+const contas = _isLimpar ? [
   {desc:'Salários — Maio/2026',              cat:'Salários',             venc:'07/05/2026', val:137430, status:'vencer'},
   {desc:'Vale-Refeição — Maio/2026',         cat:'Vale-Refeição',        venc:'05/05/2026', val:61355,  status:'vencer'},
   {desc:'Prestação de Serviço PJ',           cat:'Prest. Serv. PJ',      venc:'15/05/2026', val:30603,  status:'vencer'},
@@ -216,7 +219,7 @@ const contas = [
   {desc:'Imposto Municipal — Maio',          cat:'Impostos Municipais',  venc:'31/05/2026', val:362,    status:'futuro'},
   {desc:'Manutenção Predial',                cat:'Manutenção',           venc:'20/05/2026', val:280,    status:'futuro'},
   {desc:'Ações Trabalhistas — Parcela',      cat:'Ações Trabalhistas',   venc:'15/05/2026', val:1500,   status:'vencer'},
-];
+] : [];
 
 document.getElementById('tblPagar').innerHTML = contas.map(c => `
   <tr>

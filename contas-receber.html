@@ -199,9 +199,19 @@ Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
 Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
+const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
+const _isLimpar = _client.id === 1;
+
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const recVal = [482725,603943,717424,715659,274065,0,0,0,0,0,0,0];
-const recQtd = [36,49,62,56,35,0,0,0,0,0,0,0];
+const recVal = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+const recQtd = _isLimpar ? [36,49,62,56,35,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+
+if (!_isLimpar) {
+  document.getElementById('kpiVencida').textContent = 'R$ 0';
+  document.getElementById('kpiAVencer').textContent = 'R$ 0';
+  document.getElementById('kpiRecebida').textContent = 'R$ 0';
+  document.getElementById('kpiTotal').textContent = 'R$ 0';
+}
 
 let mode = 'val';
 let chartRecebidos, chartDonut, chartAberto;
@@ -254,7 +264,7 @@ function initCharts() {
     data: {
       labels: ['A Vencer','Recebidos','Vencidos','Perda'],
       datasets: [{
-        data: [27.4, 55.0, 17.5, 0.1],
+        data: _isLimpar ? [27.4, 55.0, 17.5, 0.1] : [25, 25, 25, 25],
         backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'],
         borderWidth: 0, hoverOffset: 6,
       }]
@@ -274,9 +284,9 @@ function initCharts() {
     data: {
       labels: meses,
       datasets: [
-        { label: 'A Vencer', data: [0,0,0,0,136540,567409,567409,567409,567409,563520,563520,563520],
+        { label: 'A Vencer', data: _isLimpar ? [0,0,0,0,136540,567409,567409,567409,567409,563520,563520,563520] : [0,0,0,0,0,0,0,0,0,0,0,0],
           backgroundColor: '#2563eb', borderRadius: 4, borderSkipped: false },
-        { label: 'Vencidos', data: [0,0,0,44010,87272,0,0,0,0,0,0,0],
+        { label: 'Vencidos', data: _isLimpar ? [0,0,0,44010,87272,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
           backgroundColor: '#f43f5e', borderRadius: 4, borderSkipped: false },
       ]
     },

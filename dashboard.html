@@ -102,6 +102,9 @@
 </div>
 
 <script>
+const _c = JSON.parse(localStorage.getItem('currentClient') || '{"name":"Cliente"}');
+document.querySelectorAll('.home-welcome span').forEach(el => el.textContent = _c.name);
+
 function updateClock() {
   const now = new Date();
   document.getElementById('clock').textContent =

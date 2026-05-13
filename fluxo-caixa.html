@@ -228,9 +228,12 @@ Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
 Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
+const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
+const _isLimpar = _client.id === 1;
+
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const recebidos = [482725,603943,717424,715659,274065,0,0,0,0,0,0,0];
-const pagos     = [473639,604692,723026,658674,234082,0,0,0,0,0,0,0];
+const recebidos = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+const pagos     = _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
 const saldo     = recebidos.map((r,i)=> r>0 ? r - pagos[i] : null);
 
 new Chart(document.getElementById('chartFluxo'), {
