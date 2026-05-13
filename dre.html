@@ -93,36 +93,36 @@
       </select>
     </div>
 
-    <!-- 6 KPIs — valores em R$ xx,xx conforme solicitado -->
+    <!-- 6 KPIs -->
     <div class="kpi-6">
       <div class="kpi">
         <div class="kpi-label">Receita Bruta de Serviços</div>
-        <div class="kpi-val blue">R$ 608.226,06</div>
-        <div class="kpi-footer"><span class="badge up">▲ 0,5%</span><span class="kpi-sub">vs. Mar</span></div>
+        <div class="kpi-val blue">R$ 535.384</div>
+        <div class="kpi-footer"><span class="badge down">▼ 33,3%</span><span class="kpi-sub">vs. Abr</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Receita Líquida de Vendas</div>
-        <div class="kpi-val blue">R$ 543.554,14</div>
-        <div class="kpi-footer"><span class="badge down">▼ 3,2%</span><span class="kpi-sub">vs. Mar</span></div>
+        <div class="kpi-label">Receita Líquida de Serviços</div>
+        <div class="kpi-val blue">R$ 433.586</div>
+        <div class="kpi-footer"><span class="badge down">▼ 35,4%</span><span class="kpi-sub">vs. Abr</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Lucro Bruto</div>
-        <div class="kpi-val green">R$ 430.197,96</div>
-        <div class="kpi-footer"><span class="badge up">▲ 1,4%</span><span class="kpi-sub">vs. Mar</span></div>
+        <div class="kpi-val green">R$ 254.783</div>
+        <div class="kpi-footer"><span class="badge down">▼ 52,8%</span><span class="kpi-sub">vs. Abr</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Lucro / Prej. Operacional</div>
-        <div class="kpi-val red">(R$ 8.722,56)</div>
-        <div class="kpi-footer"><span class="badge up">▲ melhora</span><span class="kpi-sub">vs. Mar +12.653</span></div>
+        <div class="kpi-label">Resultado Operacional</div>
+        <div class="kpi-val red">(R$ 213.053)</div>
+        <div class="kpi-footer"><span class="badge down">▼ piora</span><span class="kpi-sub">vs. Abr +47.134</span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Lucro / Prej. Líquido</div>
-        <div class="kpi-val red">(R$ 33.014,21)</div>
-        <div class="kpi-footer"><span class="badge up">▲ melhora</span><span class="kpi-sub">vs. Mar -95.602</span></div>
+        <div class="kpi-label">Resultado Líquido</div>
+        <div class="kpi-val red">(R$ 210.761)</div>
+        <div class="kpi-footer"><span class="badge down">▼ piora</span><span class="kpi-sub">vs. Abr +23.998</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Acumulado Jan–Mai</div>
-        <div class="kpi-val red">(R$ 210.298,03)</div>
+        <div class="kpi-val red">(R$ 361.979)</div>
         <div class="kpi-footer"><span class="badge neutral">Prejuízo acum.</span></div>
       </div>
     </div>
@@ -189,9 +189,9 @@ new Chart(document.getElementById('chartDRE'), {
   data: {
     labels: meses,
     datasets: [
-      { label:'Receita Bruta',  data: _isLimpar ? [176764,245383,605175,608226,266040] : [0,0,0,0,0], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
-      { label:'Lucro Bruto',    data: _isLimpar ? [-31638,93879,424290,430198,234672] : [0,0,0,0,0],  borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
-      { label:'Res. Líquido',   data: _isLimpar ? [-60914,-60750,-95602,-33014,39982] : [0,0,0,0,0],  borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Receita Bruta',  data: _isLimpar ? [212660,293564,746529,802544,535384] : [0,0,0,0,0], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Lucro Bruto',    data: _isLimpar ? [-14330,104850,469567,539630,254783] : [0,0,0,0,0],  borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Res. Líquido',   data: _isLimpar ? [-56118,-47554,-71544,23998,-210761] : [0,0,0,0,0],  borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
     ]
   },
   options: {
@@ -211,50 +211,49 @@ const neg = (n) => n === null ? '—' : '(R$ ' + Math.abs(n).toLocaleString('pt-
 // rows: { type: 'group'|'sub'|'sub2'|'total'|'sep', label, values:[jan,fev,mar,abr,mai], group?, pos? }
 const rows = [
   {t:'group', label:'Receitas Operacionais'},
-  {t:'sub',   label:'(+) Receita Bruta de Serviços',         v:[176764,245383,605175,608226,266040], pos:true},
-  {t:'sub',   label:'(-) Deduções (Simples + Retenções)',     v:[-34408,-20401,-43554,-64672,-362],   pos:false},
-  {t:'sub2',  label:'Simples Nacional - DAS',                 v:[-34362,-528,-2864,-23755,0],         pos:false},
-  {t:'sub2',  label:'Retenções PIS/COFINS/CSLL',             v:[0,-19832,-39687,-21800,0],            pos:false},
-  {t:'sub2',  label:'Retenção ISS Serviços Tomados',          v:[0,-41,-38,-15424,0],                 pos:false},
-  {t:'sub2',  label:'Impostos Municipais e Tributos',         v:[-46,0,-965,-3692,-362],              pos:false},
-  {t:'total', label:'(=) Receita Líquida de Serviços',        v:[142356,224981,561622,543554,265678], pos:true, cls:'pos'},
+  {t:'sub',   label:'(+) Receita Bruta de Serviços (NFS-e)',   v:[212660,293564,746529,802544,535384], pos:true},
+  {t:'sub',   label:'(-) Impostos sobre Receita (ISS/PIS/COFINS/CSLL)', v:[-35896,-38206,-120805,-131523,-101798], pos:false},
+  {t:'total', label:'(=) Receita Líquida de Serviços',         v:[176764,255358,625724,671021,433586], pos:true, cls:'pos'},
   {t:'sep'},
   {t:'group', label:'Custo dos Serviços'},
-  {t:'sub',   label:'(-) Prestação de Serviço PJ',            v:[-170118,-122775,-131578,-106530,-30603], pos:false},
-  {t:'sub',   label:'(-) Materiais Aplicados e Fretes',       v:[-3876,-8228,-5754,-6826,-403],       pos:false},
-  {t:'total', label:'(=) Lucro Bruto',                        v:[-31638,93879,424290,430198,234672],  pos:true, cls:'pos'},
+  {t:'sub',   label:'(-) Prestação de Serviço PJ',             v:[-170118,-122775,-131578,-106530,-34603], pos:false},
+  {t:'sub',   label:'(-) Remuneração de Autônomos',            v:[0,-5000,0,-140,-118700], pos:false},
+  {t:'sub',   label:'(-) Materiais na Prestação de Serviços',  v:[-3876,-8228,-5754,-6826,-7470], pos:false},
+  {t:'sub',   label:'(-) ASSIDUIDADE (bônus produtividade)',   v:[-17100,-14505,-18825,-17895,-18030], pos:false},
+  {t:'total', label:'(=) Lucro Bruto',                         v:[-14330,104850,469567,539630,254783], pos:true, cls:'pos'},
   {t:'sep'},
   {t:'group', label:'Despesas Operacionais'},
-  {t:'sub',   label:'(-) Despesas com Pessoal',               v:[-221215,-322093,-327210,-374687,-170035], pos:false},
-  {t:'sub2',  label:'Salários',                               v:[-97339,-126785,-133281,-168433,-137430], pos:false},
-  {t:'sub2',  label:'Vale-Refeição',                          v:[-40449,-41307,-61355,-61404,-4817],  pos:false},
-  {t:'sub2',  label:'Vale-Transporte',                        v:[-31871,-36692,-19739,-16290,-1187],  pos:false},
-  {t:'sub2',  label:'ASSIDUIDADE / Gratificações',            v:[-17100,-16419,-19505,-18075,-70],    pos:false},
-  {t:'sub2',  label:'FGTS + INSS + Encargos',                 v:[-12496,-28859,-16352,-45037,0],      pos:false},
-  {t:'sub2',  label:'Férias + Rescisões + 13°',               v:[-10103,-26647,-22718,-20712,0],      pos:false},
-  {t:'sub2',  label:'Plano Saúde + Outros Benefícios',        v:[0,-5085,-6676,-8624,-3879],          pos:false},
-  {t:'sub2',  label:'Pró-labore',                             v:[-1018,-15300,-16000,-16000,-16037],  pos:false},
-  {t:'sub2',  label:'Outros Pessoal',                         v:[-10840,-25999,-31584,-19712,-6615],  pos:false},
-  {t:'sub',   label:'(-) Despesas Administrativas',           v:[-25717,-41323,-35165,-40981,-11903], pos:false},
-  {t:'sub2',  label:'Honorários Advocatícios e Contábeis',    v:[-11499,-13652,-14852,-20755,-8155],  pos:false},
-  {t:'sub2',  label:'Veículos e Combustíveis',                v:[-5794,-6759,-5940,-5736,0],          pos:false},
-  {t:'sub2',  label:'Software + Telefonia + TI',              v:[-1953,-2702,-3121,-4747,-1513],      pos:false},
-  {t:'sub2',  label:'Marketing e Publicidade',                v:[-2733,-2833,-2983,-1450,-1450],      pos:false},
-  {t:'sub2',  label:'Demais Administrativas',                 v:[-3738,-15377,-8269,-8293,-785],      pos:false},
-  {t:'sub',   label:'(-) Despesas Jurídicas (Ações Trabalhistas)',v:[-15488,-10823,-49262,-23252,-9655], pos:false},
-  {t:'total', label:'(=) Resultado Operacional',              v:[-294057,-280360,12653,-8723,43079],  pos:true, cls:'neg'},
+  {t:'sub',   label:'(-) Despesas com Pessoal',                v:[-202816,-301984,-306743,-366495,-314262], pos:false},
+  {t:'sub2',  label:'Salários',                                v:[-97339,-134785,-139367,-176062,-147120], pos:false},
+  {t:'sub2',  label:'Vale-Refeição',                           v:[-40449,-41307,-61355,-61404,-80400], pos:false},
+  {t:'sub2',  label:'Vale-Transporte + Vale-Alimentação',      v:[-40841,-44636,-28854,-26651,-13654], pos:false},
+  {t:'sub2',  label:'FGTS + INSS + Encargos',                  v:[-12496,-28859,-16352,-45037,-31116], pos:false},
+  {t:'sub2',  label:'Férias + Rescisões + 13°',                v:[-10103,-26647,-22718,-30712,-19000], pos:false},
+  {t:'sub2',  label:'Plano Saúde + Outros Benefícios',         v:[-570,-10450,-22097,-10629,-6935], pos:false},
+  {t:'sub2',  label:'Pró-labore',                              v:[-1018,-15300,-16000,-16000,-16037], pos:false},
+  {t:'sub',   label:'(-) Despesas Administrativas',            v:[-32619,-45940,-40432,-53754,-51024], pos:false},
+  {t:'sub2',  label:'Honorários (Advocatícios + Contábeis)',   v:[-13994,-20232,-18852,-26368,-30205], pos:false},
+  {t:'sub2',  label:'Veículos + Mobilidade',                   v:[-6854,-7298,-6576,-7767,-1270], pos:false},
+  {t:'sub2',  label:'Software + TI + Telecom',                 v:[-4828,-3492,-3621,-5247,-4530], pos:false},
+  {t:'sub2',  label:'Marketing e Publicidade',                 v:[-2733,-2833,-2983,-1450,-1450], pos:false},
+  {t:'sub2',  label:'Aluguel + Materiais + Outros',            v:[-4210,-12085,-8400,-12922,-13569], pos:false},
+  {t:'sub',   label:'(-) Despesas Jurídicas (Ações Trabalhistas)', v:[-6488,-3688,-42127,-7576,-7576], pos:false},
+  {t:'sub',   label:'(-) Impostos e Tributos',                 v:[-34408,-20401,-43554,-64671,-94974], pos:false},
+  {t:'sub2',  label:'Simples Nacional - DAS',                  v:[-34362,-528,-2864,-23755,-23853], pos:false},
+  {t:'sub2',  label:'Retenções PIS/COFINS/CSLL',               v:[0,-19832,-39687,-21800,-40000], pos:false},
+  {t:'sub2',  label:'Retenção ISS Serviços Tomados',            v:[0,-41,-38,-15424,-15323], pos:false},
+  {t:'sub2',  label:'IRRF + Impostos Municipais + Tributos',   v:[-46,0,-965,-3692,-15798], pos:false},
+  {t:'total', label:'(=) Resultado Operacional',               v:[-290661,-267163,36711,47134,-213053], pos:true, cls:'neg'},
   {t:'sep'},
   {t:'group', label:'Resultado Não Operacional'},
-  {t:'sub',   label:'(-) Despesas Financeiras',               v:[-2818,-78950,-130504,-41725,-11122], pos:false},
-  {t:'sub2',  label:'Empréstimos de Bancos (saída)',           v:[0,-70000,-120000,-30000,0],          pos:false},
-  {t:'sub2',  label:'Empréstimos Outras Inst.',               v:[0,-7000,-7000,-7000,-8000],          pos:false},
-  {t:'sub2',  label:'Juros + Tarifas Bancárias',              v:[-2818,-1950,-3504,-4725,-3122],      pos:false},
-  {t:'sub',   label:'(+) Outras Receitas',                    v:[235961,298560,22249,17433,8025],     pos:true},
-  {t:'sub2',  label:'Integralização de Capital Social',       v:[232480,252909,18067,15289,5000],     pos:true},
-  {t:'sub2',  label:'Empréstimos de Bancos (entrada)',         v:[70000,60000,90000,90000,0],          pos:true},
-  {t:'sub2',  label:'Outras Entradas + Rendimentos',          v:[3481,45651,4182,2144,3025],          pos:true},
-  {t:'sub2',  label:'Deduções sobre entradas diversas',       v:[-70000,-60000,-90000,-90000,0],      pos:false},
-  {t:'total', label:'(=) Lucro / Prej. Líquido',              v:[-60914,-60750,-95602,-33014,39982],  pos:true, cls:'neg'},
+  {t:'sub',   label:'(-) Despesas Financeiras',                v:[-1418,-78950,-130504,-40570,-11122], pos:false},
+  {t:'sub2',  label:'Empréstimos de Bancos (saída)',            v:[0,-70000,-120000,-30000,0], pos:false},
+  {t:'sub2',  label:'Empréstimos Outras Instituições',         v:[0,-7000,-7000,-7000,-8000], pos:false},
+  {t:'sub2',  label:'Juros + Tarifas Bancárias',               v:[-1418,-1950,-3504,-3570,-3122], pos:false},
+  {t:'sub',   label:'(+) Outras Receitas',                     v:[235961,298559,22249,17434,13414], pos:true},
+  {t:'sub2',  label:'Integralização de Capital Social',        v:[232480,252909,18067,15289,10389], pos:true},
+  {t:'sub2',  label:'Outras Entradas + Rendimentos',           v:[3481,45650,4182,2145,3025], pos:true},
+  {t:'total', label:'(=) Resultado Líquido',                   v:[-56118,-47554,-71544,23998,-210761], pos:true, cls:'neg'},
 ];
 
 const groups = {};

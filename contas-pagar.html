@@ -169,7 +169,7 @@ new Chart(document.getElementById('chartPagos'), {
   data: {
     labels: meses,
     datasets: [{
-      data: _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
+      data: _isLimpar ? [462915,592808,702917,658674,233415,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0],
       backgroundColor: ctx => ctx.dataIndex < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)',
       borderRadius: 5, borderSkipped: false,
     }]
@@ -188,9 +188,9 @@ new Chart(document.getElementById('chartPagos'), {
 new Chart(document.getElementById('chartCat'), {
   type: 'bar',
   data: {
-    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Vale-Transporte','ASSIDUIDADE','Pró-labore','Simples Nacional','Ações Trabalhistas','FGTS'],
+    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','Vale-Transporte','ASSIDUIDADE','Simples Nacional','FGTS','Ações Trabalhistas','Pró-labore'],
     datasets: [{
-      data: _isLimpar ? [663268,561604,220000,209332,105779,68325,64355,61509,61378,61094] : [0,0,0,0,0,0,0,0,0,0],
+      data: _isLimpar ? [664861,565604,284915,220000,105779,86355,85363,78847,67455,64355] : [0,0,0,0,0,0,0,0,0,0],
       backgroundColor: [
         '#2563eb','#3b82f6','#60a5fa','#93c5fd',
         '#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'
@@ -211,18 +211,18 @@ new Chart(document.getElementById('chartCat'), {
 
 // Tabela A Pagar
 const contas = _isLimpar ? [
-  {desc:'Salários — Maio/2026',              cat:'Salários',             venc:'07/05/2026', val:137430, status:'vencer'},
-  {desc:'Vale-Refeição — Maio/2026',         cat:'Vale-Refeição',        venc:'05/05/2026', val:61355,  status:'vencer'},
-  {desc:'Prestação de Serviço PJ',           cat:'Prest. Serv. PJ',      venc:'15/05/2026', val:30603,  status:'vencer'},
-  {desc:'Pró-labore — Maio/2026',            cat:'Pró-labore',           venc:'30/05/2026', val:16037,  status:'futuro'},
-  {desc:'Vale-Transporte — Maio/2026',       cat:'Vale-Transporte',      venc:'05/05/2026', val:19739,  status:'vencer'},
-  {desc:'Honorários Advocatícios',           cat:'Honorários',           venc:'20/05/2026', val:8155,   status:'vencer'},
-  {desc:'Empréstimo Outra Instituição',      cat:'Empréstimos',          venc:'25/05/2026', val:8000,   status:'futuro'},
-  {desc:'Juros Conta Garantida',             cat:'Financeiro',           venc:'31/05/2026', val:3122,   status:'futuro'},
-  {desc:'Software / Licença de Uso',         cat:'Software',             venc:'20/05/2026', val:1513,   status:'vencer'},
-  {desc:'Imposto Municipal — Maio',          cat:'Impostos Municipais',  venc:'31/05/2026', val:362,    status:'futuro'},
-  {desc:'Manutenção Predial',                cat:'Manutenção',           venc:'20/05/2026', val:280,    status:'futuro'},
-  {desc:'Ações Trabalhistas — Parcela',      cat:'Ações Trabalhistas',   venc:'15/05/2026', val:1500,   status:'vencer'},
+  {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',        venc:'29/05/2026', val:40103,  status:'vencer'},
+  {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',       venc:'25/05/2026', val:40000,  status:'vencer'},
+  {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',        venc:'15/05/2026', val:35000,  status:'vencer'},
+  {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos',venc:'29/05/2026', val:30000,  status:'vencer'},
+  {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',     venc:'20/05/2026', val:23331,  status:'vencer'},
+  {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',          venc:'20/05/2026', val:18030,  status:'vencer'},
+  {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                 venc:'20/05/2026', val:17754,  status:'vencer'},
+  {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',         venc:'20/05/2026', val:15323,  status:'vencer'},
+  {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos',venc:'15/05/2026', val:14000,  status:'vencer'},
+  {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos',venc:'22/05/2026', val:13733,  status:'futuro'},
+  {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',  venc:'20/05/2026', val:13362,  status:'vencer'},
+  {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',     venc:'20/05/2026', val:12000,  status:'vencer'},
 ] : [];
 
 document.getElementById('tblPagar').innerHTML = contas.map(c => `
