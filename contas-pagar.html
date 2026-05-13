@@ -303,6 +303,21 @@ renderTable(_isLimpar ? contasMes[5] : []);
 
 function updateMes() {
   if (!_isLimpar) return;
+  const ano = document.getElementById('selAno').value;
+  if (ano !== '2026') {
+    document.getElementById('kpiPagos').textContent     = 'R$ 0';
+    document.getElementById('kpiAPagar').textContent    = 'R$ 0';
+    document.getElementById('kpiAtrasadas').textContent = 'R$ 0';
+    document.getElementById('kpiTotal').textContent     = 'R$ 0';
+    chartPagos.data.datasets[0].backgroundColor = barColors(null);
+    chartPagos.update();
+    chartCat.data.labels = catsMes.all.labels;
+    chartCat.data.datasets[0].data = catsMes.all.data.map(() => 0);
+    chartCat.update();
+    renderTable([]);
+    document.getElementById('qtdPendentes').textContent = 'sem dados para este ano';
+    return;
+  }
   const val = document.getElementById('selMes').value;
   const key = val === 'all' ? 'all' : parseInt(val);
   const selIdx = val === 'all' ? null : parseInt(val) - 1;

@@ -244,6 +244,24 @@ function setToggle(m) {
 }
 
 function updateData() {
+  const ano = document.getElementById('selAno').value;
+  if (ano !== '2026') {
+    if (_isLimpar) {
+      document.getElementById('kpiVencida').textContent  = 'R$ 0';
+      document.getElementById('kpiAVencer').textContent  = 'R$ 0';
+      document.getElementById('kpiRecebida').textContent = 'R$ 0';
+      document.getElementById('kpiTotal').textContent    = 'R$ 0';
+    }
+    chartRecebidos.data.datasets[0].data = recVal.map(() => 0);
+    chartRecebidos.data.datasets[0].backgroundColor = recVal.map(() => 'rgba(59,130,246,0.25)');
+    chartRecebidos.update();
+    chartDonut.data.datasets[0].data = [25, 25, 25, 25];
+    chartDonut.update();
+    chartAberto.data.datasets[0].backgroundColor = meses.map(() => 'rgba(59,130,246,0.15)');
+    chartAberto.data.datasets[1].backgroundColor = meses.map(() => 'rgba(244,63,94,0.15)');
+    chartAberto.update();
+    return;
+  }
   const mesVal = document.getElementById('selMes').value;
   const mesKey = mesVal === 'all' ? 'all' : parseInt(mesVal);
   const selIdx = mesVal === 'all' ? null : parseInt(mesVal) - 1;
