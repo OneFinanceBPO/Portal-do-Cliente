@@ -160,11 +160,28 @@
       senha.classList.add('err'); ok = false;
     }
     if (ok) {
-      localStorage.setItem('of_login_email', email.value.trim());
-      if (email.value.includes('adm') || email.value.includes('onefinance')) {
+      const emailVal = email.value.trim();
+      const perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
+      const perfil = perfis.find(p => p.email === emailVal);
+
+      if (perfil) {
+        if (perfil.senha && perfil.senha !== senha.value) {
+          document.getElementById('senhaErr').textContent = 'Senha incorreta.';
+          document.getElementById('senhaErr').style.display = 'block';
+          senha.classList.add('err');
+          return;
+        }
+        localStorage.setItem('of_login_email', emailVal);
         window.location.href = 'gerenciamento.html';
       } else {
-        window.location.href = 'dashboard.html';
+        if (!emailVal.includes('adm') && !emailVal.includes('onefinance')) {
+          document.getElementById('emailErr').textContent = 'Acesso não autorizado.';
+          document.getElementById('emailErr').style.display = 'block';
+          email.classList.add('err');
+          return;
+        }
+        localStorage.setItem('of_login_email', emailVal);
+        window.location.href = 'gerenciamento.html';
       }
     }
   }
