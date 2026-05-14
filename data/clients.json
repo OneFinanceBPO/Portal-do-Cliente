@@ -1,0 +1,7 @@
+{
+  "clients": [
+    { "id": 1, "name": "Limpar", "segment": "Serviços", "cnpj": "—" },
+    { "id": 2, "name": "One Finance", "segment": "Serviços", "cnpj": "—" },
+    { "id": 3, "name": "Equipe", "segment": "Serviços", "cnpj": "—" }
+  ]
+}

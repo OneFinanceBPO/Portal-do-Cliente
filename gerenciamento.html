@@ -17,6 +17,19 @@
   .confirm-modal .icon svg { width:24px; height:24px; color:var(--red); }
   .confirm-modal p { font-size:13px; color:var(--text2); margin:8px 0 24px; }
   .badge-status { font-size:10px; font-weight:600; padding:2px 8px; border-radius:4px; background:rgba(34,197,94,.12); color:var(--green); }
+
+  /* Sync badge */
+  #syncBadge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; font-weight:600; padding:3px 9px; border-radius:6px;
+    cursor:pointer; transition:opacity .2s;
+  }
+  #syncBadge.synced  { background:rgba(34,197,94,.12);  color:var(--green); }
+  #syncBadge.syncing { background:rgba(251,191,36,.12); color:#fbbf24; }
+  #syncBadge.error   { background:rgba(244,63,94,.12);  color:var(--red);   }
+  #syncBadge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  #syncBadge.syncing .dot { animation:pulse .8s infinite; }
 </style>
 </head>
 <body>
@@ -33,7 +46,7 @@
         <span class="nav-tooltip">Clientes</span>
       </button>
     </a>
-<button class="nav-btn" id="btnPerfilNav" title="Perfil" onclick="openPerfil()">
+    <button class="nav-btn" id="btnPerfilNav" title="Perfil" onclick="openPerfil()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
       </svg>
@@ -66,6 +79,9 @@
     <span class="page-title">Gerenciamento</span>
   </div>
   <div class="header-right">
+    <span id="syncBadge" class="syncing" onclick="openTokenModal()" title="Clique para configurar o token de sincronização">
+      <span class="dot"></span><span id="syncLabel">Conectando…</span>
+    </span>
     <div class="time-badge">
       <span class="lbl">Última atualização</span>
       <span id="clock"></span>
@@ -136,6 +152,28 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveClient()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TOKEN DE SINCRONIZAÇÃO -->
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal" style="width:460px">
+    <h3>Sincronização entre dispositivos</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6">
+      Para que os clientes criados aqui apareçam em qualquer computador automaticamente,
+      é necessário um <strong>GitHub Token</strong> com permissão de escrita no repositório.<br><br>
+      Crie em: <span style="color:var(--accent)">github.com → Settings → Developer Settings → Personal access tokens → Fine-grained</span><br>
+      Permissão necessária: <strong>Contents: Read and Write</strong> no repositório <em>OneFinanceBPO/Portal-do-Cliente</em>.
+    </p>
+    <div class="form-group">
+      <label class="form-lbl">GitHub Token</label>
+      <input class="form-input" type="password" id="tokenInput" placeholder="github_pat_..." style="padding:10px 14px">
+    </div>
+    <div id="tokenStatus" style="font-size:11px;color:var(--text2);margin-top:8px;min-height:16px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveToken()">Salvar e Testar</button>
     </div>
   </div>
 </div>
@@ -217,20 +255,144 @@
 </div>
 
 <script>
-const DEFAULT_CLIENTS = [{ id:1, name:'Limpar', segment:'Serviços', cnpj:'—' }];
+// ── GITHUB SYNC CONFIG ──
+const REPO     = 'OneFinanceBPO/Portal-do-Cliente';
+const FILE     = 'data/clients.json';
+const RAW_URL  = `https://raw.githubusercontent.com/${REPO}/main/${FILE}`;
+const API_URL  = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
 
-function loadClients() {
-  try { return JSON.parse(localStorage.getItem('of_clients')) || DEFAULT_CLIENTS; }
-  catch { return DEFAULT_CLIENTS; }
+let cachedSHA  = null;
+let clients    = [];
+let editId     = null;
+let deleteId   = null;
+let isLimitedUser = false;
+
+// ── SYNC BADGE ──
+function setSyncBadge(state, label) {
+  const el = document.getElementById('syncBadge');
+  el.className = state;
+  document.getElementById('syncLabel').textContent = label;
 }
-function saveClients() {
-  localStorage.setItem('of_clients', JSON.stringify(clients));
+
+// ── UTF-8 SAFE BASE64 ──
+const toB64   = str => btoa(unescape(encodeURIComponent(str)));
+const fromB64 = str => decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
+
+function getToken() {
+  return localStorage.getItem('of_github_token') || '';
 }
 
-let clients = loadClients();
-let editId = null;
-let deleteId = null;
+// ── LOAD CLIENTS FROM GITHUB ──
+async function loadClientsFromGitHub() {
+  setSyncBadge('syncing', 'Conectando…');
+  const token = getToken();
+  const headers = { 'Accept': 'application/vnd.github.v3+json' };
+  if (token) headers['Authorization'] = `token ${token}`;
 
+  try {
+    const res  = await fetch(API_URL, { headers });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erro na API');
+    cachedSHA = data.sha;
+    const parsed = JSON.parse(fromB64(data.content));
+    setSyncBadge('synced', 'Sincronizado');
+    return parsed.clients || [];
+  } catch (e) {
+    // Fallback: raw URL (sem autenticação, sem SHA)
+    try {
+      const res  = await fetch(RAW_URL + '?t=' + Date.now());
+      const data = await res.json();
+      setSyncBadge(token ? 'error' : 'error', token ? 'Erro no token' : 'Token não configurado');
+      return data.clients || [];
+    } catch {
+      setSyncBadge('error', 'Sem conexão');
+      return [];
+    }
+  }
+}
+
+// ── PUSH CLIENTS TO GITHUB ──
+async function pushToGitHub() {
+  const token = getToken();
+  if (!token) {
+    setSyncBadge('error', 'Token não configurado');
+    openTokenModal();
+    return false;
+  }
+
+  setSyncBadge('syncing', 'Salvando…');
+  const headers = {
+    'Authorization': `token ${token}`,
+    'Content-Type':  'application/json',
+    'Accept':        'application/vnd.github.v3+json',
+  };
+
+  try {
+    // Fetch current SHA if we don't have it
+    if (!cachedSHA) {
+      const r = await fetch(API_URL, { headers });
+      const d = await r.json();
+      cachedSHA = d.sha;
+    }
+
+    const body = JSON.stringify({
+      message: 'chore: update clients list',
+      content: toB64(JSON.stringify({ clients }, null, 2)),
+      sha:     cachedSHA,
+    });
+
+    const res  = await fetch(API_URL, { method: 'PUT', headers, body });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || 'Erro ao salvar');
+    cachedSHA = data.content.sha;
+    setSyncBadge('synced', 'Sincronizado');
+    return true;
+  } catch (e) {
+    setSyncBadge('error', 'Erro ao salvar');
+    console.error(e);
+    return false;
+  }
+}
+
+// ── TOKEN MODAL ──
+function openTokenModal() {
+  document.getElementById('tokenInput').value = getToken();
+  document.getElementById('tokenStatus').textContent = '';
+  closeModal();
+  document.getElementById('tokenModal').classList.add('open');
+}
+
+async function saveToken() {
+  const token = document.getElementById('tokenInput').value.trim();
+  const status = document.getElementById('tokenStatus');
+  if (!token) return;
+
+  status.textContent = 'Testando token…';
+  status.style.color = '#fbbf24';
+
+  try {
+    const res = await fetch(API_URL, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      }
+    });
+    if (!res.ok) throw new Error('Token inválido ou sem permissão');
+    localStorage.setItem('of_github_token', token);
+    status.textContent = 'Token válido! Salvando…';
+    status.style.color = 'var(--green)';
+    setTimeout(() => {
+      closeModal();
+      init();
+    }, 800);
+  } catch (e) {
+    status.textContent = 'Erro: ' + e.message;
+    status.style.color = 'var(--red)';
+  }
+}
+
+// ── RENDER ──
 function renderClients(list) {
   const grid = document.getElementById('clientsGrid');
   grid.innerHTML = list.map(c => `
@@ -259,7 +421,8 @@ function renderClients(list) {
       </div>` : ''}
     </div>
   `).join('');
-  document.getElementById('countLabel').textContent = `${list.length} cliente${list.length !== 1 ? 's' : ''} cadastrado${list.length !== 1 ? 's' : ''}`;
+  document.getElementById('countLabel').textContent =
+    `${list.length} cliente${list.length !== 1 ? 's' : ''} cadastrado${list.length !== 1 ? 's' : ''}`;
 }
 
 function getVisibleClients() {
@@ -278,6 +441,7 @@ function goClient(id) {
   window.location.href = 'dashboard.html';
 }
 
+// ── CRUD ──
 function openAddModal() {
   editId = null;
   document.getElementById('modalTitle').textContent = 'Novo Cliente';
@@ -307,29 +471,34 @@ function closeModal() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
 }
 
-function saveClient() {
+async function saveClient() {
   const name = document.getElementById('novaEmpresa').value.trim();
   const cnpj = document.getElementById('novoCNPJ').value.trim();
   const seg  = document.getElementById('novoSegmento').value;
   if (!name) return;
+
   if (editId) {
     const c = clients.find(x => x.id === editId);
     c.name = name; c.cnpj = cnpj || c.cnpj; c.segment = seg;
   } else {
-    clients.push({ id: Date.now(), name, segment: seg, cnpj: cnpj || '00.000.000/0001-00' });
+    clients.push({ id: Date.now(), name, segment: seg, cnpj: cnpj || '—' });
   }
-  saveClients(); closeModal(); renderClients(getVisibleClients());
+
+  closeModal();
+  renderClients(getVisibleClients());
+  await pushToGitHub();
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   clients = clients.filter(x => x.id !== deleteId);
-  saveClients(); closeModal(); renderClients(getVisibleClients());
+  closeModal();
+  renderClients(getVisibleClients());
+  await pushToGitHub();
 }
 
 // ── GESTÃO DE PERFIS ──
 let perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
 let editPerfilId = null;
-let isLimitedUser = false;
 
 function savePerfisStorage() {
   localStorage.setItem('of_perfis', JSON.stringify(perfis));
@@ -343,7 +512,7 @@ function renderPerfis() {
   }
   el.innerHTML = perfis.map(p => {
     const isAdm = (p.tipo || 'adm') === 'adm';
-    const badgeBg = isAdm ? 'rgba(34,197,94,.12)' : 'rgba(251,146,60,.12)';
+    const badgeBg    = isAdm ? 'rgba(34,197,94,.12)' : 'rgba(251,146,60,.12)';
     const badgeColor = isAdm ? 'var(--green)' : '#fb923c';
     const badgeLabel = isAdm ? 'Admin' : 'Colaborador';
     return `
@@ -426,11 +595,11 @@ function savePerfil() {
   const acesso = [...document.querySelectorAll('#perfilEmpresas input[type=checkbox]:checked')]
     .map(cb => Number(cb.value));
   const dados = {
-    nome: document.getElementById('perfilNome').value.trim(),
+    nome:      document.getElementById('perfilNome').value.trim(),
     sobrenome: document.getElementById('perfilSobrenome').value.trim(),
-    email: document.getElementById('perfilEmail').value.trim(),
-    senha: document.getElementById('perfilSenha').value,
-    tipo: document.getElementById('perfilTipo').value,
+    email:     document.getElementById('perfilEmail').value.trim(),
+    senha:     document.getElementById('perfilSenha').value,
+    tipo:      document.getElementById('perfilTipo').value,
     acesso,
   };
   if (!dados.nome || !dados.email) return;
@@ -467,7 +636,6 @@ function applyAccessRestrictions() {
   document.getElementById('btnPerfilNav').style.display = 'none';
 }
 
-// close on overlay click
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeModal(); });
 });
@@ -480,12 +648,18 @@ function toggleFull() {
 function updateClock() {
   const now = new Date();
   document.getElementById('clock').textContent =
-    now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 }
-updateClock(); setInterval(updateClock, 30000);
 
-applyAccessRestrictions();
-renderClients(getVisibleClients());
+// ── INIT ──
+async function init() {
+  clients = await loadClientsFromGitHub();
+  applyAccessRestrictions();
+  renderClients(getVisibleClients());
+}
+
+updateClock(); setInterval(updateClock, 30000);
+init();
 </script>
 </body>
 </html>
