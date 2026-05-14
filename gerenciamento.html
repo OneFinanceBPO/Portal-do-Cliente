@@ -283,7 +283,6 @@ function openAddModal() {
   document.getElementById('modalTitle').textContent = 'Novo Cliente';
   document.getElementById('novaEmpresa').value = '';
   document.getElementById('novoCNPJ').value = '';
-  document.getElementById('novoEmail').value = '';
   document.getElementById('addModal').classList.add('open');
 }
 
@@ -293,7 +292,6 @@ function openEdit(id) {
   document.getElementById('modalTitle').textContent = 'Editar Cliente';
   document.getElementById('novaEmpresa').value = c.name;
   document.getElementById('novoCNPJ').value = c.cnpj;
-  document.getElementById('novoEmail').value = '';
   document.getElementById('novoSegmento').value = c.segment;
   document.getElementById('addModal').classList.add('open');
 }
