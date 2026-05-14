@@ -18,7 +18,6 @@
   .fluxo-line .name { color:var(--text2); }
   .fluxo-line .val  { font-weight:600; }
   .fluxo-line .pct  { font-size:10px; color:var(--text3); margin-left:6px; }
-
   .saldo-banner { border-radius:12px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border:1px solid; }
   .saldo-banner.pos { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.2); }
   .saldo-banner.neg { background:rgba(244,63,94,.08); border-color:rgba(244,63,94,.2); }
@@ -28,14 +27,12 @@
   .saldo-banner.neg .sb-val { color:var(--red); }
   .saldo-banner .sb-badge { font-size:12px; font-weight:600; padding:4px 10px; border-radius:6px; }
   .saldo-banner.pos .sb-badge { background:rgba(34,197,94,.15); color:var(--green); }
-
-  /* bar inside table */
+  .saldo-banner.neg .sb-badge { background:rgba(244,63,94,.15); color:var(--red); }
   .inline-bar { display:inline-block; height:6px; border-radius:3px; vertical-align:middle; margin-left:6px; }
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="brand"><a href="gerenciamento.html"><img src="logo.png" alt="One Finance"></a></div>
   <nav>
@@ -50,7 +47,6 @@
   </div>
 </aside>
 
-<!-- HEADER -->
 <header class="header">
   <div class="header-left">
     <a href="gerenciamento.html" class="icon-btn" title="Voltar para lista de clientes">
@@ -71,107 +67,88 @@
 <main class="main">
   <div class="page">
 
-    <!-- FILTERS -->
     <div class="filter-row">
       <span class="filter-lbl">Ano</span>
-      <select class="filter-sel"><option>2026</option><option>2025</option><option>2024</option></select>
+      <select class="filter-sel" id="selAno" onchange="updateFluxo()"><option>2026</option><option>2025</option><option>2024</option></select>
       <span class="filter-lbl">Mês</span>
-      <select class="filter-sel">
+      <select class="filter-sel" id="selMes" onchange="updateFluxo()">
         <option value="all">Todos</option>
-        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
-        <option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
-        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option>
+        <option value="5" selected>Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
       </select>
     </div>
 
-    <!-- KPIs -->
     <div class="kpi-row">
       <div class="kpi">
         <div class="kpi-label">Total Recebidos</div>
-        <div class="kpi-val green">R$ 274.065</div>
+        <div class="kpi-val green" id="kpiRecebidos">R$ 274.065</div>
         <div class="kpi-footer"><span class="badge down">▼ 61,7%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Total Pagos</div>
-        <div class="kpi-val red">R$ 234.082</div>
+        <div class="kpi-val red" id="kpiPagos">R$ 234.082</div>
         <div class="kpi-footer"><span class="badge down">▼ 64,4%</span><span class="kpi-sub">vs. mês anterior (parcial)</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Geração de Caixa</div>
-        <div class="kpi-val green">R$ 39.982</div>
+        <div class="kpi-val green" id="kpiGeracao">R$ 39.982</div>
         <div class="kpi-footer"><span class="badge down">▼ 29,9%</span><span class="kpi-sub">vs. mês anterior</span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Transações Rec. / Pag.</div>
-        <div class="kpi-val blue">35 <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">203</span></div>
+        <div class="kpi-val blue" id="kpiTransacoes">35 <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">203</span></div>
         <div class="kpi-footer"><span class="kpi-sub" style="font-size:10px;">qtde no período</span></div>
       </div>
     </div>
 
-    <!-- SALDO BANNER -->
-    <div class="saldo-banner pos">
+    <div class="saldo-banner pos" id="saldoBanner">
       <div>
-        <div class="sb-label">Saldo do Período (Mai/2026 — parcial)</div>
-        <div class="sb-val">R$ 39.982,43</div>
+        <div class="sb-label" id="saldoLabel">Saldo do Período (Mai/2026 — parcial)</div>
+        <div class="sb-val" id="saldoVal">R$ 39.982,43</div>
       </div>
       <div style="text-align:right">
-        <div class="sb-badge">▲ Fluxo Positivo</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:6px;">Recebidos superam Pagos em 17,1%</div>
+        <div class="sb-badge" id="saldoBadge">▲ Fluxo Positivo</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:6px;" id="saldoSub">Recebidos superam Pagos em 17,1%</div>
       </div>
     </div>
 
-    <!-- ENTRADAS / SAÍDAS LADO A LADO -->
     <div class="fluxo-summary">
-      <!-- ENTRADAS -->
       <div class="fluxo-panel" style="background:var(--bg-card)">
         <div class="fluxo-panel-hdr" style="background:rgba(34,197,94,.06);border-bottom:1px solid rgba(34,197,94,.15)">
           <div>
             <div class="label" style="color:var(--green)">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;"></span>
-              Entradas — Mai/2026
+              <span id="entLabel">Entradas — Mai/2026</span>
             </div>
-            <div class="total" style="color:var(--green)">R$ 274.065</div>
+            <div class="total" style="color:var(--green)" id="entTotal">R$ 274.065</div>
           </div>
           <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text2)">35 recebimentos</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Parcial (12 dias)</div>
+            <div style="font-size:11px;color:var(--text2)" id="entCount">35 recebimentos</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px" id="entObs">Parcial (12 dias)</div>
           </div>
         </div>
-        <div class="fluxo-panel-body">
-          <div class="fluxo-line"><span class="name">Receitas de Serviços</span><span class="val td-pos">R$ 266.040<span class="pct">97,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Outras Entradas</span><span class="val td-pos">R$ 3.024<span class="pct">1,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Integralização de Capital</span><span class="val td-pos">R$ 5.000<span class="pct">1,8%</span></span></div>
-          <div class="fluxo-line"><span class="name">Rendimentos de Aplicações</span><span class="val td-pos">R$ 1<span class="pct">0,0%</span></span></div>
-        </div>
+        <div class="fluxo-panel-body" id="entItens"></div>
       </div>
 
-      <!-- SAÍDAS -->
       <div class="fluxo-panel" style="background:var(--bg-card)">
         <div class="fluxo-panel-hdr" style="background:rgba(244,63,94,.06);border-bottom:1px solid rgba(244,63,94,.15)">
           <div>
             <div class="label" style="color:var(--red)">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;"></span>
-              Saídas — Mai/2026
+              <span id="saiLabel">Saídas — Mai/2026</span>
             </div>
-            <div class="total" style="color:var(--red)">R$ 234.082</div>
+            <div class="total" style="color:var(--red)" id="saiTotal">R$ 234.082</div>
           </div>
           <div style="text-align:right">
-            <div style="font-size:11px;color:var(--text2)">203 pagamentos</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:2px">Parcial (12 dias)</div>
+            <div style="font-size:11px;color:var(--text2)" id="saiCount">203 pagamentos</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px" id="saiObs">Parcial (12 dias)</div>
           </div>
         </div>
-        <div class="fluxo-panel-body">
-          <div class="fluxo-line"><span class="name">Pessoal (Salários + Benefícios)</span><span class="val td-neg">R$ 170.035<span class="pct">72,6%</span></span></div>
-          <div class="fluxo-line"><span class="name">Prestação de Serviço PJ</span><span class="val td-neg">R$ 30.603<span class="pct">13,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Despesas Financeiras</span><span class="val td-neg">R$ 11.122<span class="pct">4,7%</span></span></div>
-          <div class="fluxo-line"><span class="name">Despesas Administrativas</span><span class="val td-neg">R$ 11.903<span class="pct">5,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Despesas Jurídicas</span><span class="val td-neg">R$ 9.655<span class="pct">4,1%</span></span></div>
-          <div class="fluxo-line"><span class="name">Impostos e Deduções</span><span class="val td-neg">R$ 362<span class="pct">0,2%</span></span></div>
-        </div>
+        <div class="fluxo-panel-body" id="saiItens"></div>
       </div>
     </div>
 
-    <!-- CHART: Evolução Anual -->
     <div class="chart-card" style="margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div class="chart-title" style="margin:0">Evolução do Fluxo de Caixa — Jan a Dez 2026</div>
@@ -184,10 +161,9 @@
       <div class="chart-wrap" style="height:230px"><canvas id="chartFluxo"></canvas></div>
     </div>
 
-    <!-- TABELA DETALHADA -->
     <div class="chart-card">
       <div class="sec-header">
-        <div class="sec-title">Detalhamento por Data de Transação — Maio/2026</div>
+        <div class="sec-title" id="tblFluxoTitle">Detalhamento por Data de Transação — Mai/2026</div>
         <span style="font-size:11px;color:var(--text2)">Saldo positivo em verde · Negativo em vermelho</span>
       </div>
       <div class="tbl-wrap">
@@ -204,14 +180,7 @@
           </thead>
           <tbody id="tblFluxo"></tbody>
           <tfoot>
-            <tr style="font-weight:700;border-top:2px solid var(--border)">
-              <td>Total Maio (parcial)</td>
-              <td class="td-pos">R$ 274.064,88</td>
-              <td>100%</td>
-              <td class="td-neg">R$ 234.082,45</td>
-              <td>100%</td>
-              <td class="td-pos">R$ 39.982,43</td>
-            </tr>
+            <tr style="font-weight:700;border-top:2px solid var(--border)" id="tblFluxoFoot"></tr>
           </tfoot>
         </table>
       </div>
@@ -231,85 +200,342 @@ Chart.defaults.font.size = 11;
 const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
 const _isLimpar = _client.id === 1;
 
-if (!_isLimpar) {
-  document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
-  const sbVal = document.querySelector('.sb-val');
-  if (sbVal) sbVal.textContent = 'R$ 0';
-  const sbBadge = document.querySelector('.sb-badge');
-  if (sbBadge) sbBadge.textContent = '— Sem dados';
-  document.querySelectorAll('.fluxo-panel-hdr .total').forEach(el => { el.textContent = 'R$ 0'; });
-  document.querySelectorAll('.fluxo-line .val').forEach(el => { el.textContent = 'R$ 0'; });
-  document.querySelectorAll('.tbl-wrap tbody tr').forEach(el => el.remove());
+const mesesAbr = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const recBar = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+const pagBar = _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
+const saldoLine = recBar.map((r,i) => r>0||pagBar[i]>0 ? r-pagBar[i] : null);
+
+const dadosFluxo = {
+  all: {
+    labelPeriodo:'Jan–Mai 2026', obs:'Acumulado 5 meses',
+    recTotal:2793816, pagTotal:2694113, qtdRec:238, qtdPag:2431,
+    entItens:[
+      {name:'Receitas de Serviços',          val:1901588},
+      {name:'Integralização de Capital',     val:523745},
+      {name:'Empréstimos de Bancos',         val:310000},
+      {name:'Outras Entradas + Rendimentos', val:58483},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:1358642},
+      {name:'Prest. Serv. PJ + Autônomos',    val:591831},
+      {name:'Impostos e Tributos',             val:285018},
+      {name:'Despesas Financeiras',            val:262564},
+      {name:'Despesas Administrativas',        val:134683},
+      {name:'Despesas Jurídicas',              val:61379},
+    ],
+    tableMode:'monthly',
+  },
+  1: {
+    labelPeriodo:'Jan/2026', obs:'Mês encerrado',
+    recTotal:482725, pagTotal:473639, qtdRec:36, qtdPag:552,
+    entItens:[
+      {name:'Receitas de Serviços',          val:176764},
+      {name:'Integralização de Capital',     val:232480},
+      {name:'Empréstimos de Bancos',         val:70000},
+      {name:'Outras Entradas + Rendimentos', val:3481},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:219345},
+      {name:'Prest. Serv. PJ + Autônomos',    val:173994},
+      {name:'Impostos e Tributos',             val:47609},
+      {name:'Despesas Administrativas',        val:24786},
+      {name:'Despesas Jurídicas',              val:6488},
+      {name:'Despesas Financeiras',            val:1418},
+    ],
+    tableMode:'daily',
+    rows:[
+      {dt:'02/01/2026',rec:32499.66,pag:11797.02},{dt:'05/01/2026',rec:32526.14,pag:39495.13},
+      {dt:'07/01/2026',rec:50000.08,pag:67683.98},{dt:'08/01/2026',rec:0,pag:236.96},
+      {dt:'09/01/2026',rec:49980.00,pag:26465.05},{dt:'12/01/2026',rec:6490.12,pag:10333.33},
+      {dt:'13/01/2026',rec:11097.62,pag:398.20},  {dt:'14/01/2026',rec:0,pag:1255.58},
+      {dt:'15/01/2026',rec:65000.07,pag:73425.20},{dt:'16/01/2026',rec:480.12,pag:18629.10},
+      {dt:'19/01/2026',rec:50000.00,pag:34927.97},{dt:'20/01/2026',rec:23981.76,pag:49681.33},
+      {dt:'21/01/2026',rec:0,pag:3719.66},        {dt:'22/01/2026',rec:19518.53,pag:176.70},
+      {dt:'23/01/2026',rec:0.01,pag:26163.48},    {dt:'25/01/2026',rec:0.67,pag:10724.17},
+      {dt:'26/01/2026',rec:0,pag:4964.00},        {dt:'27/01/2026',rec:0,pag:1040.00},
+      {dt:'28/01/2026',rec:0,pag:307.57},         {dt:'29/01/2026',rec:61150.23,pag:2791.52},
+      {dt:'30/01/2026',rec:80000.01,pag:89423.13},
+    ]
+  },
+  2: {
+    labelPeriodo:'Fev/2026', obs:'Mês encerrado',
+    recTotal:603943, pagTotal:604692, qtdRec:49, qtdPag:614,
+    entItens:[
+      {name:'Receitas de Serviços',          val:245383},
+      {name:'Integralização de Capital',     val:252909},
+      {name:'Empréstimos de Bancos',         val:60000},
+      {name:'Outras Entradas + Rendimentos', val:45651},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:306040},
+      {name:'Prest. Serv. PJ + Autônomos',    val:136003},
+      {name:'Despesas Financeiras',            val:78950},
+      {name:'Impostos e Tributos',             val:49734},
+      {name:'Despesas Administrativas',        val:30278},
+      {name:'Despesas Jurídicas',              val:3688},
+    ],
+    tableMode:'daily',
+    rows:[
+      {dt:'02/02/2026',rec:134206.55,pag:34030.34},{dt:'03/02/2026',rec:0.01,pag:1066.09},
+      {dt:'04/02/2026',rec:92576.64,pag:33.00},   {dt:'05/02/2026',rec:7872.13,pag:24730.74},
+      {dt:'06/02/2026',rec:780.52,pag:129679.01}, {dt:'09/02/2026',rec:53000.00,pag:23677.08},
+      {dt:'10/02/2026',rec:38225.14,pag:80670.13},{dt:'11/02/2026',rec:0.01,pag:638.74},
+      {dt:'12/02/2026',rec:1500.03,pag:2965.70},  {dt:'13/02/2026',rec:63000.32,pag:88247.45},
+      {dt:'18/02/2026',rec:37289.54,pag:19949.03},{dt:'19/02/2026',rec:15850.21,pag:3704.64},
+      {dt:'20/02/2026',rec:43409.72,pag:55682.83},{dt:'23/02/2026',rec:0.31,pag:30314.41},
+      {dt:'24/02/2026',rec:0.01,pag:1036.85},     {dt:'25/02/2026',rec:950.98,pag:32216.65},
+      {dt:'26/02/2026',rec:55280.36,pag:2380.31}, {dt:'27/02/2026',rec:60000.02,pag:73669.44},
+    ]
+  },
+  3: {
+    labelPeriodo:'Mar/2026', obs:'Mês encerrado',
+    recTotal:717424, pagTotal:723026, qtdRec:62, qtdPag:582,
+    entItens:[
+      {name:'Receitas de Serviços',          val:605175},
+      {name:'Empréstimos de Bancos',         val:90000},
+      {name:'Integralização de Capital',     val:18067},
+      {name:'Outras Entradas + Rendimentos', val:4182},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:303471},
+      {name:'Prest. Serv. PJ + Autônomos',    val:137332},
+      {name:'Despesas Financeiras',            val:130504},
+      {name:'Impostos e Tributos',             val:80432},
+      {name:'Despesas Jurídicas',              val:42127},
+      {name:'Despesas Administrativas',        val:29161},
+    ],
+    tableMode:'daily',
+    rows:[
+      {dt:'02/03/2026',rec:135422.91,pag:14305.14},{dt:'03/03/2026',rec:90725.78,pag:22729.20},
+      {dt:'04/03/2026',rec:23285.14,pag:1856.97}, {dt:'05/03/2026',rec:29947.96,pag:26976.04},
+      {dt:'06/03/2026',rec:42261.08,pag:121483.54},{dt:'09/03/2026',rec:39062.32,pag:99080.55},
+      {dt:'10/03/2026',rec:0,pag:11077.33},       {dt:'11/03/2026',rec:13678.62,pag:1796.91},
+      {dt:'12/03/2026',rec:46774.90,pag:2014.80}, {dt:'13/03/2026',rec:1.25,pag:78212.29},
+      {dt:'16/03/2026',rec:14008.29,pag:20956.52},{dt:'17/03/2026',rec:3888.91,pag:5142.03},
+      {dt:'18/03/2026',rec:4860.66,pag:1061.76},  {dt:'19/03/2026',rec:0.01,pag:282.00},
+      {dt:'20/03/2026',rec:70000.33,pag:92017.02},{dt:'23/03/2026',rec:0.12,pag:5014.00},
+      {dt:'24/03/2026',rec:43743.04,pag:45552.07},{dt:'25/03/2026',rec:0.42,pag:11159.92},
+      {dt:'26/03/2026',rec:22515.00,pag:4328.12}, {dt:'27/03/2026',rec:55403.17,pag:22870.87},
+      {dt:'30/03/2026',rec:59384.82,pag:75109.21},{dt:'31/03/2026',rec:22459.31,pag:60000.00},
+    ]
+  },
+  4: {
+    labelPeriodo:'Abr/2026', obs:'Mês encerrado',
+    recTotal:715659, pagTotal:658674, qtdRec:56, qtdPag:480,
+    entItens:[
+      {name:'Receitas de Serviços',          val:608226},
+      {name:'Empréstimos de Bancos',         val:90000},
+      {name:'Integralização de Capital',     val:15289},
+      {name:'Outras Entradas + Rendimentos', val:2145},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:363761},
+      {name:'Prest. Serv. PJ + Autônomos',    val:113496},
+      {name:'Impostos e Tributos',             val:96202},
+      {name:'Despesas Financeiras',            val:40570},
+      {name:'Despesas Administrativas',        val:37069},
+      {name:'Despesas Jurídicas',              val:7576},
+    ],
+    tableMode:'daily',
+    rows:[
+      {dt:'01/04/2026',rec:115388.20,pag:37073.96},{dt:'02/04/2026',rec:73217.16,pag:35098.18},
+      {dt:'06/04/2026',rec:41348.30,pag:129904.13},{dt:'07/04/2026',rec:4757.98,pag:17567.80},
+      {dt:'08/04/2026',rec:10729.96,pag:4077.97}, {dt:'09/04/2026',rec:57924.03,pag:12374.98},
+      {dt:'10/04/2026',rec:31104.39,pag:29990.15},{dt:'13/04/2026',rec:23425.30,pag:7892.39},
+      {dt:'14/04/2026',rec:3888.89,pag:4132.25},  {dt:'15/04/2026',rec:14450.54,pag:74229.15},
+      {dt:'16/04/2026',rec:17455.31,pag:50.00},   {dt:'17/04/2026',rec:25824.21,pag:39556.94},
+      {dt:'20/04/2026',rec:90000.16,pag:105102.31},{dt:'22/04/2026',rec:0.02,pag:1020.00},
+      {dt:'23/04/2026',rec:42009.73,pag:9714.18}, {dt:'24/04/2026',rec:0.25,pag:53030.06},
+      {dt:'27/04/2026',rec:0,pag:3134.51},        {dt:'28/04/2026',rec:109739.73,pag:521.79},
+      {dt:'29/04/2026',rec:23813.03,pag:20304.90},{dt:'30/04/2026',rec:30582.30,pag:73898.05},
+    ]
+  },
+  5: {
+    labelPeriodo:'Mai/2026', obs:'Parcial (12 dias)',
+    recTotal:274065, pagTotal:234082, qtdRec:35, qtdPag:203,
+    entItens:[
+      {name:'Receitas de Serviços',         val:266040},
+      {name:'Integralização de Capital',    val:5000},
+      {name:'Outras Entradas',              val:3024},
+      {name:'Rendimentos de Aplicações',    val:1},
+    ],
+    saiItens:[
+      {name:'Pessoal (Salários + Benefícios)', val:166025},
+      {name:'Prest. Serv. PJ + Autônomos',    val:31006},
+      {name:'Despesas Administrativas',        val:13389},
+      {name:'Despesas Financeiras',            val:11122},
+      {name:'Impostos e Tributos',             val:11041},
+      {name:'Despesas Jurídicas',              val:1500},
+    ],
+    tableMode:'daily',
+    rows:[
+      {dt:'04/05/2026',rec:58681.84,pag:23215.86},{dt:'05/05/2026',rec:102114.09,pag:4962.61},
+      {dt:'06/05/2026',rec:17340.09,pag:24665.98},{dt:'07/05/2026',rec:12574.30,pag:142067.02},
+      {dt:'08/05/2026',rec:25469.89,pag:20014.99},{dt:'11/05/2026',rec:44012.42,pag:18488.56},
+      {dt:'12/05/2026',rec:13872.25,pag:667.43},
+    ]
+  },
+};
+
+const MONTHLY_SUMMARY = [
+  {name:'Janeiro',         rec:482725, pag:473639},
+  {name:'Fevereiro',       rec:603943, pag:604692},
+  {name:'Março',           rec:717424, pag:723026},
+  {name:'Abril',           rec:715659, pag:658674},
+  {name:'Maio (parcial)',  rec:274065, pag:234082},
+];
+
+function fmtR(v)  { return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtRk(v) { return 'R$ '+Math.round(v).toLocaleString('pt-BR'); }
+
+function renderPanel(d) {
+  const {recTotal,pagTotal,qtdRec,qtdPag,labelPeriodo,obs,entItens,saiItens} = d;
+  const saldo = recTotal - pagTotal;
+
+  document.getElementById('entLabel').textContent = `Entradas — ${labelPeriodo}`;
+  document.getElementById('entTotal').textContent = fmtRk(recTotal);
+  document.getElementById('entCount').textContent = `${qtdRec} recebimentos`;
+  document.getElementById('entObs').textContent   = obs;
+  document.getElementById('entItens').innerHTML   = entItens.map(it => {
+    const pct = recTotal>0 ? (it.val/recTotal*100).toFixed(1) : 0;
+    return `<div class="fluxo-line"><span class="name">${it.name}</span><span class="val td-pos">${fmtRk(it.val)}<span class="pct">${pct}%</span></span></div>`;
+  }).join('');
+
+  document.getElementById('saiLabel').textContent = `Saídas — ${labelPeriodo}`;
+  document.getElementById('saiTotal').textContent = fmtRk(pagTotal);
+  document.getElementById('saiCount').textContent = `${qtdPag} pagamentos`;
+  document.getElementById('saiObs').textContent   = obs;
+  document.getElementById('saiItens').innerHTML   = saiItens.map(it => {
+    const pct = pagTotal>0 ? (it.val/pagTotal*100).toFixed(1) : 0;
+    return `<div class="fluxo-line"><span class="name">${it.name}</span><span class="val td-neg">${fmtRk(it.val)}<span class="pct">${pct}%</span></span></div>`;
+  }).join('');
+
+  const banner = document.getElementById('saldoBanner');
+  banner.className = 'saldo-banner '+(saldo>=0?'pos':'neg');
+  const parcial = obs.includes('Parcial') ? ' — parcial' : '';
+  document.getElementById('saldoLabel').textContent = `Saldo do Período (${labelPeriodo}${parcial})`;
+  document.getElementById('saldoVal').textContent   = fmtR(Math.abs(saldo));
+  if (saldo >= 0) {
+    const pct = pagTotal>0 ? ((recTotal/pagTotal-1)*100).toFixed(1) : 100;
+    document.getElementById('saldoBadge').textContent = '▲ Fluxo Positivo';
+    document.getElementById('saldoSub').textContent   = `Recebidos superam Pagos em ${pct}%`;
+  } else {
+    const pct = recTotal>0 ? ((pagTotal/recTotal-1)*100).toFixed(1) : 100;
+    document.getElementById('saldoBadge').textContent = '▼ Fluxo Negativo';
+    document.getElementById('saldoSub').textContent   = `Pagos superam Recebidos em ${pct}%`;
+  }
+
+  document.getElementById('kpiRecebidos').textContent = fmtRk(recTotal);
+  document.getElementById('kpiPagos').textContent     = fmtRk(pagTotal);
+  const geracaoEl = document.getElementById('kpiGeracao');
+  geracaoEl.textContent = saldo>=0 ? fmtRk(saldo) : '('+fmtRk(Math.abs(saldo))+')';
+  geracaoEl.className   = 'kpi-val '+(saldo>=0?'green':'red');
+  document.getElementById('kpiTransacoes').innerHTML =
+    `${qtdRec} <span style="font-size:14px;color:var(--text2)">/</span> <span style="font-size:18px;">${qtdPag}</span>`;
 }
 
-const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const recebidos = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
-const pagos     = _isLimpar ? [473639,604692,723026,658674,234082,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
-const saldo     = recebidos.map((r,i)=> r>0 ? r - pagos[i] : null);
+function renderTable(d) {
+  const tbody = document.getElementById('tblFluxo');
+  const foot  = document.getElementById('tblFluxoFoot');
+  const title = document.getElementById('tblFluxoTitle');
 
-new Chart(document.getElementById('chartFluxo'), {
+  if (d.tableMode === 'monthly') {
+    title.textContent = 'Resumo Mensal — Jan a Mai 2026';
+    const totR = MONTHLY_SUMMARY.reduce((a,r)=>a+r.rec,0);
+    const totP = MONTHLY_SUMMARY.reduce((a,r)=>a+r.pag,0);
+    tbody.innerHTML = MONTHLY_SUMMARY.map(r => {
+      const s=r.rec-r.pag, pR=(r.rec/totR*100).toFixed(1), pP=(r.pag/totP*100).toFixed(1);
+      return `<tr>
+        <td style="color:var(--text2)">${r.name}</td>
+        <td class="td-pos">${fmtR(r.rec)}</td>
+        <td><span style="font-size:11px;color:var(--text2)">${pR}%</span><span class="inline-bar" style="width:${Math.max(parseFloat(pR)*1.2,2)}px;background:rgba(34,197,94,0.5)"></span></td>
+        <td class="td-neg">${fmtR(r.pag)}</td>
+        <td><span style="font-size:11px;color:var(--text2)">${pP}%</span><span class="inline-bar" style="width:${Math.max(parseFloat(pP)*1.2,2)}px;background:rgba(244,63,94,0.5)"></span></td>
+        <td class="${s>=0?'td-pos':'td-neg'}">${fmtR(Math.abs(s))}</td>
+      </tr>`;
+    }).join('');
+    const totS=totR-totP;
+    foot.innerHTML = `<td>Total Acumulado (Jan–Mai)</td><td class="td-pos">${fmtR(totR)}</td><td>100%</td><td class="td-neg">${fmtR(totP)}</td><td>100%</td><td class="${totS>=0?'td-pos':'td-neg'}">${fmtR(Math.abs(totS))}</td>`;
+  } else {
+    const rows=d.rows||[], parcial=d.obs.includes('Parcial')?' (parcial)':'';
+    title.textContent = `Detalhamento por Data de Transação — ${d.labelPeriodo}`;
+    const totR=rows.reduce((a,r)=>a+r.rec,0), totP=rows.reduce((a,r)=>a+r.pag,0);
+    tbody.innerHTML = rows.map(r => {
+      const s=r.rec-r.pag;
+      const pR=totR>0?(r.rec/totR*100).toFixed(1):0, pP=totP>0?(r.pag/totP*100).toFixed(1):0;
+      return `<tr>
+        <td style="color:var(--text2)">${r.dt}</td>
+        <td class="td-pos">${r.rec>0?fmtR(r.rec):'—'}</td>
+        <td><span style="font-size:11px;color:var(--text2)">${pR}%</span><span class="inline-bar" style="width:${Math.max(parseFloat(pR)*1.2,2)}px;background:rgba(34,197,94,0.5)"></span></td>
+        <td class="td-neg">${r.pag>0?fmtR(r.pag):'—'}</td>
+        <td><span style="font-size:11px;color:var(--text2)">${pP}%</span><span class="inline-bar" style="width:${Math.max(parseFloat(pP)*1.2,2)}px;background:rgba(244,63,94,0.5)"></span></td>
+        <td class="${s>=0?'td-pos':'td-neg'}">${fmtR(Math.abs(s))}</td>
+      </tr>`;
+    }).join('');
+    const totS=totR-totP;
+    foot.innerHTML = `<td>Total ${d.labelPeriodo}${parcial}</td><td class="td-pos">${fmtR(totR)}</td><td>100%</td><td class="td-neg">${fmtR(totP)}</td><td>100%</td><td class="${totS>=0?'td-pos':'td-neg'}">${fmtR(Math.abs(totS))}</td>`;
+  }
+}
+
+let chartFluxo = new Chart(document.getElementById('chartFluxo'), {
   type: 'bar',
   data: {
-    labels: meses,
+    labels: mesesAbr,
     datasets: [
-      { label:'Recebidos', data: recebidos,
-        backgroundColor: ctx => ctx.dataIndex < 5 ? 'rgba(34,197,94,0.75)' : 'rgba(34,197,94,0.2)',
-        borderRadius:4, borderSkipped:false, order:2 },
-      { label:'Pagos', data: pagos,
-        backgroundColor: ctx => ctx.dataIndex < 5 ? 'rgba(244,63,94,0.75)' : 'rgba(244,63,94,0.2)',
-        borderRadius:4, borderSkipped:false, order:2 },
-      { label:'Saldo', data: saldo, type:'line',
-        borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.08)',
-        borderWidth:2, pointRadius:4, pointBackgroundColor:'#facc15',
-        fill:true, tension:0.3, order:1 },
+      { label:'Recebidos', data:recBar, backgroundColor:recBar.map((_,i)=>i<5?'rgba(34,197,94,0.75)':'rgba(34,197,94,0.2)'), borderRadius:4, borderSkipped:false, order:2 },
+      { label:'Pagos',     data:pagBar, backgroundColor:pagBar.map((_,i)=>i<5?'rgba(244,63,94,0.75)':'rgba(244,63,94,0.2)'), borderRadius:4, borderSkipped:false, order:2 },
+      { label:'Saldo', data:saldoLine, type:'line', borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.08)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#facc15', fill:true, tension:0.3, order:1 },
     ]
   },
   options: {
     responsive:true, maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label: ctx=>'R$ '+ctx.raw?.toLocaleString('pt-BR')}}
-    },
-    scales:{
-      x:{grid:{display:false}},
-      y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback: v=>'R$ '+(v/1000).toFixed(0)+'k'}}
-    }
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>'R$ '+ctx.raw?.toLocaleString('pt-BR')}} },
+    scales:{ x:{grid:{display:false}}, y:{grid:{color:'rgba(59,130,246,0.07)'}, ticks:{callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}} }
   }
 });
 
-// Tabela detalhada
-const rows = [
-  {dt:'04/05/2026', rec:58681.84,  pag:23215.86},
-  {dt:'05/05/2026', rec:102114.09, pag:4962.61},
-  {dt:'06/05/2026', rec:17340.09,  pag:24665.98},
-  {dt:'07/05/2026', rec:12574.30,  pag:142067.02},
-  {dt:'08/05/2026', rec:25469.89,  pag:20014.99},
-  {dt:'11/05/2026', rec:44012.42,  pag:18488.56},
-  {dt:'12/05/2026', rec:13872.25,  pag:667.43},
-];
+function updateFluxo() {
+  const ano = document.getElementById('selAno').value;
+  if (ano !== '2026') {
+    ['kpiRecebidos','kpiPagos','kpiGeracao'].forEach(id => { document.getElementById(id).textContent='R$ 0'; });
+    document.getElementById('kpiTransacoes').textContent='0 / 0';
+    document.getElementById('saldoVal').textContent='R$ 0';
+    document.getElementById('saldoBadge').textContent='— Sem dados';
+    document.getElementById('entTotal').textContent='R$ 0';
+    document.getElementById('saiTotal').textContent='R$ 0';
+    document.getElementById('entItens').innerHTML='';
+    document.getElementById('saiItens').innerHTML='';
+    document.getElementById('tblFluxo').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Sem dados para este ano</td></tr>';
+    document.getElementById('tblFluxoFoot').innerHTML='';
+    return;
+  }
+  if (!_isLimpar) return;
 
-const totalRec = rows.reduce((a,r)=>a+r.rec,0);
-const totalPag = rows.reduce((a,r)=>a+r.pag,0);
+  const mesVal = document.getElementById('selMes').value;
+  const key    = mesVal==='all' ? 'all' : parseInt(mesVal);
+  const selIdx = mesVal==='all' ? null : parseInt(mesVal)-1;
 
-document.getElementById('tblFluxo').innerHTML = rows.map(r => {
-  const saldo = r.rec - r.pag;
-  const pctRec = totalRec > 0 ? (r.rec/totalRec*100).toFixed(1) : 0;
-  const pctPag = totalPag > 0 ? (r.pag/totalPag*100).toFixed(1) : 0;
-  return `<tr>
-    <td style="color:var(--text2)">${r.dt}</td>
-    <td class="td-pos">${r.rec>0?'R$ '+r.rec.toLocaleString('pt-BR'):'—'}</td>
-    <td>
-      <span style="font-size:11px;color:var(--text2)">${pctRec}%</span>
-      <span class="inline-bar" style="width:${Math.max(pctRec*1.2,2)}px;background:rgba(34,197,94,0.5)"></span>
-    </td>
-    <td class="td-neg">${r.pag>0?'R$ '+r.pag.toLocaleString('pt-BR'):'—'}</td>
-    <td>
-      <span style="font-size:11px;color:var(--text2)">${pctPag}%</span>
-      <span class="inline-bar" style="width:${Math.max(pctPag*1.2,2)}px;background:rgba(244,63,94,0.5)"></span>
-    </td>
-    <td class="${saldo>=0?'td-pos':'td-neg'}">R$ ${Math.abs(saldo).toLocaleString('pt-BR')}</td>
-  </tr>`;
-}).join('');
+  const d = dadosFluxo[key] || {
+    labelPeriodo:'Sem dados', obs:'', recTotal:0, pagTotal:0, qtdRec:0, qtdPag:0,
+    entItens:[], saiItens:[], tableMode:'daily', rows:[]
+  };
+
+  renderPanel(d);
+  renderTable(d);
+
+  chartFluxo.data.datasets[0].backgroundColor = recBar.map((_,i) =>
+    selIdx===null ? (i<5?'rgba(34,197,94,0.75)':'rgba(34,197,94,0.2)') : (i===selIdx?'rgba(34,197,94,0.85)':'rgba(34,197,94,0.15)'));
+  chartFluxo.data.datasets[1].backgroundColor = pagBar.map((_,i) =>
+    selIdx===null ? (i<5?'rgba(244,63,94,0.75)':'rgba(244,63,94,0.2)') : (i===selIdx?'rgba(244,63,94,0.85)':'rgba(244,63,94,0.15)'));
+  chartFluxo.update();
+}
+
+if (!_isLimpar) {
+  document.querySelectorAll('.kpi-val').forEach(el=>{ el.textContent='R$ 0'; });
+  document.getElementById('saldoVal').textContent='R$ 0';
+}
+
+updateFluxo();
 
 function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}

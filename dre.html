@@ -83,13 +83,26 @@
     <!-- FILTERS -->
     <div class="filter-row">
       <span class="filter-lbl">Ano</span>
-      <select class="filter-sel"><option>2026</option><option>2025</option><option>2024</option></select>
+      <select class="filter-sel" id="selAno" onchange="updateDRE()">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+      </select>
       <span class="filter-lbl">Mês</span>
-      <select class="filter-sel">
+      <select class="filter-sel" id="selMes" onchange="updateDRE()">
         <option value="all">Todos</option>
-        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
-        <option selected>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
-        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        <option value="1">Janeiro</option>
+        <option value="2">Fevereiro</option>
+        <option value="3">Março</option>
+        <option value="4">Abril</option>
+        <option value="5" selected>Maio</option>
+        <option value="6">Junho</option>
+        <option value="7">Julho</option>
+        <option value="8">Agosto</option>
+        <option value="9">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
       </select>
     </div>
 
@@ -97,33 +110,33 @@
     <div class="kpi-6">
       <div class="kpi">
         <div class="kpi-label">Receita Bruta de Serviços</div>
-        <div class="kpi-val blue">R$ 535.384</div>
-        <div class="kpi-footer"><span class="badge down">▼ 33,3%</span><span class="kpi-sub">vs. Abr</span></div>
+        <div class="kpi-val blue" id="kpiRecBruta">R$ 0</div>
+        <div class="kpi-footer"><span class="badge" id="kpiRecBrutaBadge">—</span><span class="kpi-sub" id="kpiRecBrutaSub"></span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Receita Líquida de Serviços</div>
-        <div class="kpi-val blue">R$ 433.586</div>
-        <div class="kpi-footer"><span class="badge down">▼ 35,4%</span><span class="kpi-sub">vs. Abr</span></div>
+        <div class="kpi-val blue" id="kpiRecLiq">R$ 0</div>
+        <div class="kpi-footer"><span class="badge" id="kpiRecLiqBadge">—</span><span class="kpi-sub" id="kpiRecLiqSub"></span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Lucro Bruto</div>
-        <div class="kpi-val green">R$ 254.783</div>
-        <div class="kpi-footer"><span class="badge down">▼ 52,8%</span><span class="kpi-sub">vs. Abr</span></div>
+        <div class="kpi-val green" id="kpiLucroBruto">R$ 0</div>
+        <div class="kpi-footer"><span class="badge" id="kpiLucroBrutoBadge">—</span><span class="kpi-sub" id="kpiLucroBrutoSub"></span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Resultado Operacional</div>
-        <div class="kpi-val red">(R$ 213.053)</div>
-        <div class="kpi-footer"><span class="badge down">▼ piora</span><span class="kpi-sub">vs. Abr +47.134</span></div>
+        <div class="kpi-val red" id="kpiResOp">R$ 0</div>
+        <div class="kpi-footer"><span class="badge" id="kpiResOpBadge">—</span><span class="kpi-sub" id="kpiResOpSub"></span></div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Resultado Líquido</div>
-        <div class="kpi-val red">(R$ 210.761)</div>
-        <div class="kpi-footer"><span class="badge down">▼ piora</span><span class="kpi-sub">vs. Abr +23.998</span></div>
+        <div class="kpi-val red" id="kpiResLiq">R$ 0</div>
+        <div class="kpi-footer"><span class="badge" id="kpiResLiqBadge">—</span><span class="kpi-sub" id="kpiResLiqSub"></span></div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Acumulado Jan–Mai</div>
-        <div class="kpi-val red">(R$ 361.979)</div>
-        <div class="kpi-footer"><span class="badge neutral">Prejuízo acum.</span></div>
+        <div class="kpi-label" id="kpiAcumLabel">Acumulado Jan–Mai</div>
+        <div class="kpi-val red" id="kpiAcum">R$ 0</div>
+        <div class="kpi-footer"><span class="badge neutral" id="kpiAcumBadge">Prejuízo acum.</span></div>
       </div>
     </div>
 
@@ -143,7 +156,7 @@
     <!-- DRE TABLE -->
     <div style="background:var(--bg-card);border-radius:12px;padding:20px;border:1px solid var(--border);">
       <div class="sec-header" style="margin-bottom:16px">
-        <div class="sec-title">DRE Gerencial — Janeiro a Maio 2026</div>
+        <div class="sec-title" id="dreTableTitle">DRE Gerencial — Maio 2026</div>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-ghost btn-sm" onclick="expandAll()">Expandir Tudo</button>
           <button class="btn btn-ghost btn-sm" onclick="collapseAll()">Recolher Tudo</button>
@@ -152,10 +165,9 @@
       <div class="dre-outer">
         <table class="dre-tbl" id="dreTbl">
           <thead>
-            <tr>
+            <tr id="dreThead">
               <th>Conta</th>
-              <th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th>
-              <th style="border-left:2px solid var(--border)">Total</th>
+              <th>Mai</th>
             </tr>
           </thead>
           <tbody id="dreTbody"></tbody>
@@ -177,21 +189,18 @@ Chart.defaults.font.size = 11;
 const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
 const _isLimpar = _client.id === 1;
 
-if (!_isLimpar) {
-  document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
-  document.querySelectorAll('.dre-tbl tbody td:not(:first-child)').forEach(el => { el.textContent = '—'; });
-}
-
 // ── CHART ──
-const meses = ['Jan','Fev','Mar','Abr','Mai'];
-new Chart(document.getElementById('chartDRE'), {
+const mesLabels = ['Jan','Fev','Mar','Abr','Mai'];
+const mesNomes  = ['Janeiro','Fevereiro','Março','Abril','Maio'];
+
+let chartDRE = new Chart(document.getElementById('chartDRE'), {
   type: 'line',
   data: {
-    labels: meses,
+    labels: mesLabels,
     datasets: [
-      { label:'Receita Bruta',  data: _isLimpar ? [212660,293564,746529,802544,535384] : [0,0,0,0,0], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
-      { label:'Lucro Bruto',    data: _isLimpar ? [-14330,104850,469567,539630,254783] : [0,0,0,0,0],  borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
-      { label:'Res. Líquido',   data: _isLimpar ? [-56118,-47554,-71544,23998,-210761] : [0,0,0,0,0],  borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.04)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Receita Bruta', data: _isLimpar ? [212660,293564,746529,802544,535384] : [0,0,0,0,0], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Lucro Bruto',   data: _isLimpar ? [-14330,104850,469567,539630,254783] : [0,0,0,0,0],  borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.04)',   borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
+      { label:'Res. Líquido',  data: _isLimpar ? [-56118,-47554,-71544,23998,-210761] : [0,0,0,0,0],  borderColor:'#facc15', backgroundColor:'rgba(250,204,21,0.04)',   borderWidth:2, pointRadius:4, fill:true, tension:0.4 },
     ]
   },
   options: {
@@ -204,104 +213,135 @@ new Chart(document.getElementById('chartDRE'), {
   }
 });
 
-// ── DRE DATA ──
-const C = (n) => n === null ? '—' : 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-const neg = (n) => n === null ? '—' : '(R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2}) + ')';
+// ── KPI DATA ──
+const kpisDRE = {
+  all: { recBruta:2590681, recLiq:2162453, lucroBruto:1354500,  resOp:-687032, resLiq:-361979, acum:-361979, acumLabel:'Acumulado Jan–Mai' },
+  1:   { recBruta:212660,  recLiq:176764,  lucroBruto:-14330,   resOp:-290661, resLiq:-56118,  acum:-56118,  acumLabel:'Resultado Janeiro' },
+  2:   { recBruta:293564,  recLiq:255358,  lucroBruto:104850,   resOp:-267163, resLiq:-47554,  acum:-103672, acumLabel:'Acum. Jan–Fev' },
+  3:   { recBruta:746529,  recLiq:625724,  lucroBruto:469567,   resOp:36711,   resLiq:-71544,  acum:-175216, acumLabel:'Acum. Jan–Mar' },
+  4:   { recBruta:802544,  recLiq:671021,  lucroBruto:539630,   resOp:47134,   resLiq:23998,   acum:-151218, acumLabel:'Acum. Jan–Abr' },
+  5:   { recBruta:535384,  recLiq:433586,  lucroBruto:254783,   resOp:-213053, resLiq:-210761, acum:-361979, acumLabel:'Acum. Jan–Mai' },
+};
 
-// rows: { type: 'group'|'sub'|'sub2'|'total'|'sep', label, values:[jan,fev,mar,abr,mai], group?, pos? }
+// ── DRE ROW DATA ──
+const C   = n => 'R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const neg = n => '(R$ ' + Math.abs(n).toLocaleString('pt-BR', {minimumFractionDigits:2}) + ')';
+const fmt = n => n < 0 ? neg(n) : C(n);
+
 const rows = [
   {t:'group', label:'Receitas Operacionais'},
-  {t:'sub',   label:'(+) Receita Bruta de Serviços (NFS-e)',   v:[212660,293564,746529,802544,535384], pos:true},
-  {t:'sub',   label:'(-) Impostos sobre Receita (ISS/PIS/COFINS/CSLL)', v:[-35896,-38206,-120805,-131523,-101798], pos:false},
-  {t:'total', label:'(=) Receita Líquida de Serviços',         v:[176764,255358,625724,671021,433586], pos:true, cls:'pos'},
+  {t:'sub',   label:'(+) Receita Bruta de Serviços (NFS-e)',           v:[212660,293564,746529,802544,535384], pos:true},
+  {t:'sub',   label:'(-) Impostos sobre Receita (ISS/PIS/COFINS/CSLL)',v:[-35896,-38206,-120805,-131523,-101798], pos:false},
+  {t:'total', label:'(=) Receita Líquida de Serviços',                 v:[176764,255358,625724,671021,433586], pos:true, cls:'pos'},
   {t:'sep'},
   {t:'group', label:'Custo dos Serviços'},
-  {t:'sub',   label:'(-) Prestação de Serviço PJ',             v:[-170118,-122775,-131578,-106530,-34603], pos:false},
-  {t:'sub',   label:'(-) Remuneração de Autônomos',            v:[0,-5000,0,-140,-118700], pos:false},
-  {t:'sub',   label:'(-) Materiais na Prestação de Serviços',  v:[-3876,-8228,-5754,-6826,-7470], pos:false},
-  {t:'sub',   label:'(-) ASSIDUIDADE (bônus produtividade)',   v:[-17100,-14505,-18825,-17895,-18030], pos:false},
-  {t:'total', label:'(=) Lucro Bruto',                         v:[-14330,104850,469567,539630,254783], pos:true, cls:'pos'},
+  {t:'sub',   label:'(-) Prestação de Serviço PJ',                     v:[-170118,-122775,-131578,-106530,-34603], pos:false},
+  {t:'sub',   label:'(-) Remuneração de Autônomos',                    v:[0,-5000,0,-140,-118700], pos:false},
+  {t:'sub',   label:'(-) Materiais na Prestação de Serviços',          v:[-3876,-8228,-5754,-6826,-7470], pos:false},
+  {t:'sub',   label:'(-) ASSIDUIDADE (bônus produtividade)',            v:[-17100,-14505,-18825,-17895,-18030], pos:false},
+  {t:'total', label:'(=) Lucro Bruto',                                 v:[-14330,104850,469567,539630,254783], pos:true, cls:'pos'},
   {t:'sep'},
   {t:'group', label:'Despesas Operacionais'},
-  {t:'sub',   label:'(-) Despesas com Pessoal',                v:[-202816,-301984,-306743,-366495,-314262], pos:false},
-  {t:'sub2',  label:'Salários',                                v:[-97339,-134785,-139367,-176062,-147120], pos:false},
-  {t:'sub2',  label:'Vale-Refeição',                           v:[-40449,-41307,-61355,-61404,-80400], pos:false},
-  {t:'sub2',  label:'Vale-Transporte + Vale-Alimentação',      v:[-40841,-44636,-28854,-26651,-13654], pos:false},
-  {t:'sub2',  label:'FGTS + INSS + Encargos',                  v:[-12496,-28859,-16352,-45037,-31116], pos:false},
-  {t:'sub2',  label:'Férias + Rescisões + 13°',                v:[-10103,-26647,-22718,-30712,-19000], pos:false},
-  {t:'sub2',  label:'Plano Saúde + Outros Benefícios',         v:[-570,-10450,-22097,-10629,-6935], pos:false},
-  {t:'sub2',  label:'Pró-labore',                              v:[-1018,-15300,-16000,-16000,-16037], pos:false},
-  {t:'sub',   label:'(-) Despesas Administrativas',            v:[-32619,-45940,-40432,-53754,-51024], pos:false},
-  {t:'sub2',  label:'Honorários (Advocatícios + Contábeis)',   v:[-13994,-20232,-18852,-26368,-30205], pos:false},
-  {t:'sub2',  label:'Veículos + Mobilidade',                   v:[-6854,-7298,-6576,-7767,-1270], pos:false},
-  {t:'sub2',  label:'Software + TI + Telecom',                 v:[-4828,-3492,-3621,-5247,-4530], pos:false},
-  {t:'sub2',  label:'Marketing e Publicidade',                 v:[-2733,-2833,-2983,-1450,-1450], pos:false},
-  {t:'sub2',  label:'Aluguel + Materiais + Outros',            v:[-4210,-12085,-8400,-12922,-13569], pos:false},
-  {t:'sub',   label:'(-) Despesas Jurídicas (Ações Trabalhistas)', v:[-6488,-3688,-42127,-7576,-7576], pos:false},
-  {t:'sub',   label:'(-) Impostos e Tributos',                 v:[-34408,-20401,-43554,-64671,-94974], pos:false},
-  {t:'sub2',  label:'Simples Nacional - DAS',                  v:[-34362,-528,-2864,-23755,-23853], pos:false},
-  {t:'sub2',  label:'Retenções PIS/COFINS/CSLL',               v:[0,-19832,-39687,-21800,-40000], pos:false},
-  {t:'sub2',  label:'Retenção ISS Serviços Tomados',            v:[0,-41,-38,-15424,-15323], pos:false},
-  {t:'sub2',  label:'IRRF + Impostos Municipais + Tributos',   v:[-46,0,-965,-3692,-15798], pos:false},
-  {t:'total', label:'(=) Resultado Operacional',               v:[-290661,-267163,36711,47134,-213053], pos:true, cls:'neg'},
+  {t:'sub',   label:'(-) Despesas com Pessoal',                        v:[-202816,-301984,-306743,-366495,-314262], pos:false},
+  {t:'sub2',  label:'Salários',                                        v:[-97339,-134785,-139367,-176062,-147120], pos:false},
+  {t:'sub2',  label:'Vale-Refeição',                                   v:[-40449,-41307,-61355,-61404,-80400], pos:false},
+  {t:'sub2',  label:'Vale-Transporte + Vale-Alimentação',              v:[-40841,-44636,-28854,-26651,-13654], pos:false},
+  {t:'sub2',  label:'FGTS + INSS + Encargos',                          v:[-12496,-28859,-16352,-45037,-31116], pos:false},
+  {t:'sub2',  label:'Férias + Rescisões + 13°',                        v:[-10103,-26647,-22718,-30712,-19000], pos:false},
+  {t:'sub2',  label:'Plano Saúde + Outros Benefícios',                 v:[-570,-10450,-22097,-10629,-6935], pos:false},
+  {t:'sub2',  label:'Pró-labore',                                      v:[-1018,-15300,-16000,-16000,-16037], pos:false},
+  {t:'sub',   label:'(-) Despesas Administrativas',                    v:[-32619,-45940,-40432,-53754,-51024], pos:false},
+  {t:'sub2',  label:'Honorários (Advocatícios + Contábeis)',            v:[-13994,-20232,-18852,-26368,-30205], pos:false},
+  {t:'sub2',  label:'Veículos + Mobilidade',                           v:[-6854,-7298,-6576,-7767,-1270], pos:false},
+  {t:'sub2',  label:'Software + TI + Telecom',                         v:[-4828,-3492,-3621,-5247,-4530], pos:false},
+  {t:'sub2',  label:'Marketing e Publicidade',                         v:[-2733,-2833,-2983,-1450,-1450], pos:false},
+  {t:'sub2',  label:'Aluguel + Materiais + Outros',                    v:[-4210,-12085,-8400,-12922,-13569], pos:false},
+  {t:'sub',   label:'(-) Despesas Jurídicas (Ações Trabalhistas)',     v:[-6488,-3688,-42127,-7576,-7576], pos:false},
+  {t:'sub',   label:'(-) Impostos e Tributos',                         v:[-34408,-20401,-43554,-64671,-94974], pos:false},
+  {t:'sub2',  label:'Simples Nacional - DAS',                          v:[-34362,-528,-2864,-23755,-23853], pos:false},
+  {t:'sub2',  label:'Retenções PIS/COFINS/CSLL',                       v:[0,-19832,-39687,-21800,-40000], pos:false},
+  {t:'sub2',  label:'Retenção ISS Serviços Tomados',                   v:[0,-41,-38,-15424,-15323], pos:false},
+  {t:'sub2',  label:'IRRF + Impostos Municipais + Tributos',           v:[-46,0,-965,-3692,-15798], pos:false},
+  {t:'total', label:'(=) Resultado Operacional',                       v:[-290661,-267163,36711,47134,-213053], pos:true, cls:'neg'},
   {t:'sep'},
   {t:'group', label:'Resultado Não Operacional'},
-  {t:'sub',   label:'(-) Despesas Financeiras',                v:[-1418,-78950,-130504,-40570,-11122], pos:false},
-  {t:'sub2',  label:'Empréstimos de Bancos (saída)',            v:[0,-70000,-120000,-30000,0], pos:false},
-  {t:'sub2',  label:'Empréstimos Outras Instituições',         v:[0,-7000,-7000,-7000,-8000], pos:false},
-  {t:'sub2',  label:'Juros + Tarifas Bancárias',               v:[-1418,-1950,-3504,-3570,-3122], pos:false},
-  {t:'sub',   label:'(+) Outras Receitas',                     v:[235961,298559,22249,17434,13414], pos:true},
-  {t:'sub2',  label:'Integralização de Capital Social',        v:[232480,252909,18067,15289,10389], pos:true},
-  {t:'sub2',  label:'Outras Entradas + Rendimentos',           v:[3481,45650,4182,2145,3025], pos:true},
-  {t:'total', label:'(=) Resultado Líquido',                   v:[-56118,-47554,-71544,23998,-210761], pos:true, cls:'neg'},
+  {t:'sub',   label:'(-) Despesas Financeiras',                        v:[-1418,-78950,-130504,-40570,-11122], pos:false},
+  {t:'sub2',  label:'Empréstimos de Bancos (saída)',                   v:[0,-70000,-120000,-30000,0], pos:false},
+  {t:'sub2',  label:'Empréstimos Outras Instituições',                 v:[0,-7000,-7000,-7000,-8000], pos:false},
+  {t:'sub2',  label:'Juros + Tarifas Bancárias',                       v:[-1418,-1950,-3504,-3570,-3122], pos:false},
+  {t:'sub',   label:'(+) Outras Receitas',                             v:[235961,298559,22249,17434,13414], pos:true},
+  {t:'sub2',  label:'Integralização de Capital Social',                v:[232480,252909,18067,15289,10389], pos:true},
+  {t:'sub2',  label:'Outras Entradas + Rendimentos',                   v:[3481,45650,4182,2145,3025], pos:true},
+  {t:'total', label:'(=) Resultado Líquido',                           v:[-56118,-47554,-71544,23998,-210761], pos:true, cls:'neg'},
 ];
 
 const groups = {};
 let gIdx = -1;
 
-function buildTable() {
+function buildTable(mesIdx) {
+  // Reset group tracking
+  gIdx = -1;
+  Object.keys(groups).forEach(k => delete groups[k]);
+
+  const isAll = mesIdx === null;
+  const cols  = isAll ? 7 : 2;
+
+  // Update thead
+  const thead = document.getElementById('dreThead');
+  if (isAll) {
+    thead.innerHTML = `<th>Conta</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th style="border-left:2px solid var(--border)">Total</th>`;
+  } else {
+    thead.innerHTML = `<th>Conta</th><th>${mesLabels[mesIdx]}</th>`;
+  }
+
   const tbody = document.getElementById('dreTbody');
-  tbody.innerHTML = rows.map((r,i) => {
-    if (r.t === 'sep') return `<tr class="r-separator"><td colspan="7"></td></tr>`;
+  tbody.innerHTML = rows.map((r, i) => {
+    if (r.t === 'sep') {
+      return `<tr class="r-separator"><td colspan="${cols}"></td></tr>`;
+    }
 
     if (r.t === 'group') {
       gIdx++;
-      groups[gIdx] = {open: true, rows:[]};
+      groups[gIdx] = { open: true, rows: [] };
+      const extra = isAll ? '<td colspan="6"></td>' : '<td></td>';
       return `<tr class="r-group" data-gidx="${gIdx}">
         <td><button class="exp open" onclick="toggleGroup(${gIdx})" id="exp${gIdx}">▶</button>${r.label}</td>
-        <td colspan="6"></td></tr>`;
+        ${extra}</tr>`;
     }
-
-    const total = r.v ? r.v.reduce((a,b)=>a+b,0) : null;
-    const vals = r.v ? r.v.map(v => {
-      if (v === null) return '<td>—</td>';
-      const txt = v < 0 ? neg(v) : C(v);
-      const cls = v < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '');
-      return `<td class="${cls}">${txt}</td>`;
-    }).join('') : '<td></td><td></td><td></td><td></td><td></td>';
-
-    const totalTxt = total !== null ? (total < 0 ? neg(total) : C(total)) : '—';
-    const totalCls = total !== null ? (total < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '')) : '';
-
-    const trClass = r.t === 'total' ? `r-total ${r.cls||''}` : r.t === 'sub2' ? 'r-sub2' : 'r-sub';
-    const dataAttr = `data-g="${gIdx}"`;
 
     if (gIdx >= 0) groups[gIdx].rows.push(i);
 
-    return `<tr class="${trClass}" ${dataAttr} id="row${i}">
-      <td>${r.label}</td>
-      ${vals}
-      <td class="${totalCls}" style="border-left:2px solid var(--border);font-weight:600">${totalTxt}</td>
-    </tr>`;
+    const trClass  = r.t === 'total' ? `r-total ${r.cls || ''}` : r.t === 'sub2' ? 'r-sub2' : 'r-sub';
+    const dataAttr = `data-g="${gIdx}"`;
+
+    if (isAll) {
+      const total    = r.v ? r.v.reduce((a, b) => a + b, 0) : null;
+      const valCells = r.v ? r.v.map(v => {
+        const txt = v < 0 ? neg(v) : C(v);
+        const cls = v < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '');
+        return `<td class="${cls}">${txt}</td>`;
+      }).join('') : '<td></td><td></td><td></td><td></td><td></td>';
+      const totalTxt = total !== null ? (total < 0 ? neg(total) : C(total)) : '—';
+      const totalCls = total !== null ? (total < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '')) : '';
+      return `<tr class="${trClass}" ${dataAttr} id="row${i}">
+        <td>${r.label}</td>${valCells}
+        <td class="${totalCls}" style="border-left:2px solid var(--border);font-weight:600">${totalTxt}</td>
+      </tr>`;
+    } else {
+      const v   = r.v ? r.v[mesIdx] : null;
+      const txt = v === null ? '—' : (v < 0 ? neg(v) : C(v));
+      const cls = v !== null && v < 0 ? 'td-neg' : (r.pos ? 'td-pos' : '');
+      return `<tr class="${trClass}" ${dataAttr} id="row${i}">
+        <td>${r.label}</td><td class="${cls}">${txt}</td>
+      </tr>`;
+    }
   }).join('');
 }
 
-function toggleGroup(gIdx) {
-  const btn = document.getElementById(`exp${gIdx}`);
+function toggleGroup(g) {
+  const btn  = document.getElementById(`exp${g}`);
   const open = btn.classList.toggle('open');
-  document.querySelectorAll(`[data-g="${gIdx}"]`).forEach(tr => {
-    tr.style.display = open ? '' : 'none';
-  });
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(tr => { tr.style.display = open ? '' : 'none'; });
 }
 
 function expandAll() {
@@ -324,10 +364,79 @@ function collapseAll() {
   });
 }
 
-function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
-function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+// ── MAIN UPDATE ──
+function updateDRE() {
+  const ano    = document.getElementById('selAno').value;
+  const mes    = document.getElementById('selMes').value;
+  const mesKey = mes === 'all' ? 'all' : parseInt(mes);
+  const mesIdx = mes === 'all' ? null : (parseInt(mes) - 1); // 0-based for array
 
-buildTable();
+  // Zero everything for years without data
+  if (ano !== '2026' || !_isLimpar) {
+    ['kpiRecBruta','kpiRecLiq','kpiLucroBruto','kpiResOp','kpiResLiq','kpiAcum'].forEach(id => {
+      document.getElementById(id).textContent = 'R$ 0';
+      document.getElementById(id).className = 'kpi-val';
+    });
+    document.getElementById('kpiAcumLabel').textContent = 'Acumulado';
+    buildTable(null);
+    return;
+  }
+
+  const d = kpisDRE[mesKey];
+
+  // Update KPI values and colors
+  const setKpi = (id, val) => {
+    const el = document.getElementById(id);
+    el.textContent = fmt(val);
+    el.className = `kpi-val ${val >= 0 ? 'green' : 'red'}`;
+  };
+
+  document.getElementById('kpiRecBruta').textContent = fmt(d.recBruta);
+  document.getElementById('kpiRecBruta').className   = 'kpi-val blue';
+  document.getElementById('kpiRecLiq').textContent   = fmt(d.recLiq);
+  document.getElementById('kpiRecLiq').className     = 'kpi-val blue';
+  setKpi('kpiLucroBruto', d.lucroBruto);
+  setKpi('kpiResOp',      d.resOp);
+  setKpi('kpiResLiq',     d.resLiq);
+  setKpi('kpiAcum',       d.acum);
+  document.getElementById('kpiAcumLabel').textContent = d.acumLabel;
+
+  // Update acum badge
+  const acumBadge = document.getElementById('kpiAcumBadge');
+  acumBadge.textContent = d.acum >= 0 ? 'Lucro acum.' : 'Prejuízo acum.';
+  acumBadge.className   = `badge ${d.acum >= 0 ? 'up' : 'neutral'}`;
+
+  // Update table title
+  const title = mes === 'all'
+    ? 'DRE Gerencial — Janeiro a Maio 2026'
+    : `DRE Gerencial — ${mesNomes[mesIdx]} 2026`;
+  document.getElementById('dreTableTitle').textContent = title;
+
+  // Rebuild table
+  buildTable(mesIdx);
+
+  // Highlight selected month on chart (increase point size)
+  if (chartDRE && mesIdx !== null) {
+    const pts = mesLabels.map((_, i) => i === mesIdx ? 6 : 3);
+    chartDRE.data.datasets.forEach(ds => { ds.pointRadius = pts; });
+    chartDRE.update('none');
+  } else if (chartDRE) {
+    chartDRE.data.datasets.forEach(ds => { ds.pointRadius = 4; });
+    chartDRE.update('none');
+  }
+}
+
+function toggleFull() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent = n.toLocaleDateString('pt-BR') + ' ' + n.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
+updateDRE();
 updateClock();
 setInterval(updateClock, 30000);
 </script>
