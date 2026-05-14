@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>One Finance — Login</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="js/sync.js"></script>
 <style>
   .error-msg { font-size:12px; color:var(--red); margin-top:6px; display:none; }
   .form-input.err { border-color:var(--red); }
@@ -141,11 +142,12 @@
     document.getElementById('rcErr').style.display = 'none';
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     let ok = true;
     const email = document.getElementById('email');
     const senha = document.getElementById('senha');
+    const btn   = e.submitter || document.querySelector('[type=submit]');
 
     document.getElementById('emailErr').style.display = 'none';
     document.getElementById('senhaErr').style.display = 'none';
@@ -159,30 +161,53 @@
       document.getElementById('senhaErr').style.display = 'block';
       senha.classList.add('err'); ok = false;
     }
-    if (ok) {
-      const emailVal = email.value.trim();
-      const perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
-      const perfil = perfis.find(p => p.email === emailVal);
+    if (!ok) return;
 
-      if (perfil) {
-        if (perfil.senha && perfil.senha !== senha.value) {
+    const emailVal  = email.value.trim();
+    const senhaVal  = senha.value;
+    if (btn) btn.disabled = true;
+
+    // Admin bypass (sem cadastro em perfis)
+    const isAdmin = emailVal.includes('adm') || emailVal.includes('onefinance');
+
+    // Busca perfis do GitHub (fonte de verdade)
+    let perfis = [];
+    try {
+      const res = await fetch(
+        'https://raw.githubusercontent.com/OneFinanceBPO/Portal-do-Cliente/main/data/perfis.json?t=' + Date.now()
+      );
+      if (res.ok) perfis = (await res.json()).perfis || [];
+    } catch { /* sem conexão — tenta localStorage como fallback */ }
+
+    if (!perfis.length) {
+      perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
+    }
+
+    const perfil = perfis.find(p => p.email === emailVal);
+
+    if (perfil) {
+      // Verifica senha (hash SHA-256 ou legado plaintext)
+      if (perfil.senha) {
+        const hashed = await GH_SYNC.hashPassword(senhaVal);
+        const match  = hashed === perfil.senha || senhaVal === perfil.senha;
+        if (!match) {
           document.getElementById('senhaErr').textContent = 'Senha incorreta.';
           document.getElementById('senhaErr').style.display = 'block';
           senha.classList.add('err');
+          if (btn) btn.disabled = false;
           return;
         }
-        localStorage.setItem('of_login_email', emailVal);
-        window.location.href = 'gerenciamento.html';
-      } else {
-        if (!emailVal.includes('adm') && !emailVal.includes('onefinance')) {
-          document.getElementById('emailErr').textContent = 'Acesso não autorizado.';
-          document.getElementById('emailErr').style.display = 'block';
-          email.classList.add('err');
-          return;
-        }
-        localStorage.setItem('of_login_email', emailVal);
-        window.location.href = 'gerenciamento.html';
       }
+      localStorage.setItem('of_login_email', emailVal);
+      window.location.href = 'gerenciamento.html';
+    } else if (isAdmin) {
+      localStorage.setItem('of_login_email', emailVal);
+      window.location.href = 'gerenciamento.html';
+    } else {
+      document.getElementById('emailErr').textContent = 'Acesso não autorizado.';
+      document.getElementById('emailErr').style.display = 'block';
+      email.classList.add('err');
+      if (btn) btn.disabled = false;
     }
   }
 </script>

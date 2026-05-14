@@ -254,17 +254,13 @@
   </div>
 </div>
 
+<script src="js/sync.js"></script>
 <script>
-// ── GITHUB SYNC CONFIG ──
-const REPO     = 'OneFinanceBPO/Portal-do-Cliente';
-const FILE     = 'data/clients.json';
-const RAW_URL  = `https://raw.githubusercontent.com/${REPO}/main/${FILE}`;
-const API_URL  = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
-
-let cachedSHA  = null;
-let clients    = [];
-let editId     = null;
-let deleteId   = null;
+let clients       = [];
+let perfis        = [];
+let editId        = null;
+let deleteId      = null;
+let editPerfilId  = null;
 let isLimitedUser = false;
 
 // ── SYNC BADGE ──
@@ -274,122 +270,45 @@ function setSyncBadge(state, label) {
   document.getElementById('syncLabel').textContent = label;
 }
 
-// ── UTF-8 SAFE BASE64 ──
-const toB64   = str => btoa(unescape(encodeURIComponent(str)));
-const fromB64 = str => decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
-
-function getToken() {
-  return localStorage.getItem('of_github_token') || '';
-}
-
-// ── LOAD CLIENTS FROM GITHUB ──
-async function loadClientsFromGitHub() {
-  setSyncBadge('syncing', 'Conectando…');
-  const token = getToken();
-  const headers = { 'Accept': 'application/vnd.github.v3+json' };
-  if (token) headers['Authorization'] = `token ${token}`;
-
-  try {
-    const res  = await fetch(API_URL, { headers });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Erro na API');
-    cachedSHA = data.sha;
-    const parsed = JSON.parse(fromB64(data.content));
-    setSyncBadge('synced', 'Sincronizado');
-    return parsed.clients || [];
-  } catch (e) {
-    // Fallback: raw URL (sem autenticação, sem SHA)
-    try {
-      const res  = await fetch(RAW_URL + '?t=' + Date.now());
-      const data = await res.json();
-      setSyncBadge(token ? 'error' : 'error', token ? 'Erro no token' : 'Token não configurado');
-      return data.clients || [];
-    } catch {
-      setSyncBadge('error', 'Sem conexão');
-      return [];
-    }
-  }
-}
-
-// ── PUSH CLIENTS TO GITHUB ──
-async function pushToGitHub() {
-  const token = getToken();
-  if (!token) {
-    setSyncBadge('error', 'Token não configurado');
-    openTokenModal();
-    return false;
-  }
-
-  setSyncBadge('syncing', 'Salvando…');
-  const headers = {
-    'Authorization': `token ${token}`,
-    'Content-Type':  'application/json',
-    'Accept':        'application/vnd.github.v3+json',
-  };
-
-  try {
-    // Fetch current SHA if we don't have it
-    if (!cachedSHA) {
-      const r = await fetch(API_URL, { headers });
-      const d = await r.json();
-      cachedSHA = d.sha;
-    }
-
-    const body = JSON.stringify({
-      message: 'chore: update clients list',
-      content: toB64(JSON.stringify({ clients }, null, 2)),
-      sha:     cachedSHA,
-    });
-
-    const res  = await fetch(API_URL, { method: 'PUT', headers, body });
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || 'Erro ao salvar');
-    cachedSHA = data.content.sha;
-    setSyncBadge('synced', 'Sincronizado');
-    return true;
-  } catch (e) {
-    setSyncBadge('error', 'Erro ao salvar');
-    console.error(e);
-    return false;
-  }
-}
-
 // ── TOKEN MODAL ──
 function openTokenModal() {
-  document.getElementById('tokenInput').value = getToken();
+  document.getElementById('tokenInput').value = GH_SYNC.getToken();
   document.getElementById('tokenStatus').textContent = '';
   closeModal();
   document.getElementById('tokenModal').classList.add('open');
 }
 
 async function saveToken() {
-  const token = document.getElementById('tokenInput').value.trim();
+  const token  = document.getElementById('tokenInput').value.trim();
   const status = document.getElementById('tokenStatus');
   if (!token) return;
-
   status.textContent = 'Testando token…';
   status.style.color = '#fbbf24';
-
-  try {
-    const res = await fetch(API_URL, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-      }
-    });
-    if (!res.ok) throw new Error('Token inválido ou sem permissão');
-    localStorage.setItem('of_github_token', token);
-    status.textContent = 'Token válido! Salvando…';
+  const ok = await GH_SYNC.testToken(token);
+  if (ok) {
+    GH_SYNC.setToken(token);
+    status.textContent = 'Token válido!';
     status.style.color = 'var(--green)';
-    setTimeout(() => {
-      closeModal();
-      init();
-    }, 800);
-  } catch (e) {
-    status.textContent = 'Erro: ' + e.message;
+    setTimeout(() => { closeModal(); init(); }, 800);
+  } else {
+    status.textContent = 'Token inválido ou sem permissão.';
     status.style.color = 'var(--red)';
   }
+}
+
+// ── PUSH helpers ──
+async function pushClients() {
+  setSyncBadge('syncing', 'Salvando…');
+  if (!GH_SYNC.getToken()) { setSyncBadge('error', 'Token não configurado'); openTokenModal(); return; }
+  const r = await GH_SYNC.saveClients(clients);
+  setSyncBadge(r.ok ? 'synced' : 'error', r.ok ? 'Sincronizado' : 'Erro ao salvar');
+}
+
+async function pushPerfis() {
+  setSyncBadge('syncing', 'Salvando…');
+  if (!GH_SYNC.getToken()) { setSyncBadge('error', 'Token não configurado'); openTokenModal(); return; }
+  const r = await GH_SYNC.savePerfis(perfis);
+  setSyncBadge(r.ok ? 'synced' : 'error', r.ok ? 'Sincronizado' : 'Erro ao salvar');
 }
 
 // ── RENDER ──
@@ -476,33 +395,25 @@ async function saveClient() {
   const cnpj = document.getElementById('novoCNPJ').value.trim();
   const seg  = document.getElementById('novoSegmento').value;
   if (!name) return;
-
   if (editId) {
     const c = clients.find(x => x.id === editId);
     c.name = name; c.cnpj = cnpj || c.cnpj; c.segment = seg;
   } else {
     clients.push({ id: Date.now(), name, segment: seg, cnpj: cnpj || '—' });
   }
-
   closeModal();
   renderClients(getVisibleClients());
-  await pushToGitHub();
+  await pushClients();
 }
 
 async function confirmDelete() {
   clients = clients.filter(x => x.id !== deleteId);
   closeModal();
   renderClients(getVisibleClients());
-  await pushToGitHub();
+  await pushClients();
 }
 
 // ── GESTÃO DE PERFIS ──
-let perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
-let editPerfilId = null;
-
-function savePerfisStorage() {
-  localStorage.setItem('of_perfis', JSON.stringify(perfis));
-}
 
 function renderPerfis() {
   const el = document.getElementById('perfisList');
@@ -591,14 +502,15 @@ function renderEmpresasCheckboxes(acesso) {
   `).join('');
 }
 
-function savePerfil() {
+async function savePerfil() {
   const acesso = [...document.querySelectorAll('#perfilEmpresas input[type=checkbox]:checked')]
     .map(cb => Number(cb.value));
+  const senhaRaw = document.getElementById('perfilSenha').value;
   const dados = {
     nome:      document.getElementById('perfilNome').value.trim(),
     sobrenome: document.getElementById('perfilSobrenome').value.trim(),
     email:     document.getElementById('perfilEmail').value.trim(),
-    senha:     document.getElementById('perfilSenha').value,
+    senha:     senhaRaw ? await GH_SYNC.hashPassword(senhaRaw) : (editPerfilId ? perfis.find(x=>x.id===editPerfilId)?.senha : ''),
     tipo:      document.getElementById('perfilTipo').value,
     acesso,
   };
@@ -609,14 +521,14 @@ function savePerfil() {
   } else {
     perfis.push({ id: Date.now(), ...dados });
   }
-  savePerfisStorage();
   backToPerfis();
+  await pushPerfis();
 }
 
-function deletePerfil(id) {
+async function deletePerfil(id) {
   perfis = perfis.filter(x => x.id !== id);
-  savePerfisStorage();
   renderPerfis();
+  await pushPerfis();
 }
 
 function backToPerfis() {
@@ -653,7 +565,9 @@ function updateClock() {
 
 // ── INIT ──
 async function init() {
-  clients = await loadClientsFromGitHub();
+  setSyncBadge('syncing', 'Conectando…');
+  [clients, perfis] = await Promise.all([GH_SYNC.loadClients(), GH_SYNC.loadPerfis()]);
+  setSyncBadge(GH_SYNC.getToken() ? 'synced' : 'error', GH_SYNC.getToken() ? 'Sincronizado' : 'Token não configurado');
   applyAccessRestrictions();
   renderClients(getVisibleClients());
 }
