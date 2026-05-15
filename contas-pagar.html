@@ -132,6 +132,7 @@
             </tr>
           </thead>
           <tbody id="tblPagar"></tbody>
+          <tfoot id="tblPagarFoot"></tfoot>
         </table>
       </div>
     </div>
@@ -249,20 +250,39 @@ function barColors(selIdx) {
 function renderTable(lista) {
   const n = lista.length;
   document.getElementById('qtdPendentes').textContent = n + ' conta' + (n !== 1 ? 's' : '') + ' pendente' + (n !== 1 ? 's' : '');
-  document.getElementById('tblPagar').innerHTML = n === 0
-    ? '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">Todos os pagamentos foram realizados neste mês</td></tr>'
-    : lista.map(c => `
-      <tr>
-        <td>${c.desc}</td>
-        <td><span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(59,130,246,0.1);color:var(--accent2)">${c.cat}</span></td>
-        <td style="color:var(--text2)">${c.venc}</td>
-        <td class="td-neg">R$ ${c.val.toLocaleString('pt-BR')}</td>
-        <td><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;
-          background:${c.status==='vencer'?'rgba(251,146,60,0.12)':c.status==='atrasado'?'rgba(244,63,94,0.12)':'rgba(59,130,246,0.1)'};
-          color:${c.status==='vencer'?'#fb923c':c.status==='atrasado'?'#f43f5e':'var(--accent2)'}">
-          ${c.status==='vencer'?'A Vencer':c.status==='atrasado'?'Atrasado':'Futuro'}
-        </span></td>
-      </tr>`).join('');
+  const foot = document.getElementById('tblPagarFoot');
+
+  if (n === 0) {
+    document.getElementById('tblPagar').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">Todos os pagamentos foram realizados neste mês</td></tr>';
+    foot.innerHTML = '';
+    return;
+  }
+
+  document.getElementById('tblPagar').innerHTML = lista.map(c => `
+    <tr>
+      <td>${c.desc}</td>
+      <td><span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(59,130,246,0.1);color:var(--accent2)">${c.cat}</span></td>
+      <td style="color:var(--text2)">${c.venc}</td>
+      <td class="td-neg">R$ ${c.val.toLocaleString('pt-BR')}</td>
+      <td><span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;
+        background:${c.status==='vencer'?'rgba(251,146,60,0.12)':c.status==='atrasado'?'rgba(244,63,94,0.12)':'rgba(59,130,246,0.1)'};
+        color:${c.status==='vencer'?'#fb923c':c.status==='atrasado'?'#f43f5e':'var(--accent2)'}">
+        ${c.status==='vencer'?'A Vencer':c.status==='atrasado'?'Atrasado':'Futuro'}
+      </span></td>
+    </tr>`).join('');
+
+  const total = lista.reduce((s, c) => s + c.val, 0);
+  foot.innerHTML = `
+    <tr style="border-top:2px solid var(--border)">
+      <td colspan="3" style="padding:12px 14px;font-weight:700;font-size:12px;color:var(--text2)">
+        Total a Pagar
+      </td>
+      <td style="padding:12px 14px;font-weight:700;font-size:13px;color:#f43f5e">
+        R$ ${total.toLocaleString('pt-BR')}
+      </td>
+      <td></td>
+    </tr>`;
 }
 
 const CAT_COLORS = ['#2563eb','#3b82f6','#60a5fa','#93c5fd','#a78bfa','#c084fc','#e879f9','#fb923c','#facc15','#4ade80'];
