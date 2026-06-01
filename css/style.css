@@ -364,34 +364,31 @@ tbody tr:hover td { background:rgba(59,130,246,.04); }
 .fluxo-hdr-title { font-size:13px; font-weight:600; }
 .fluxo-hdr-val { margin-left:auto; font-size:15px; font-weight:700; }
 
-/* ── MULTI-SELECT MÊS (dropdown com checkboxes) ── */
-.mes-wrap { position:relative; }
+/* ── FILTRO MÊS — estilo nativo macOS ── */
+.mes-wrap { position:relative; display:inline-block; }
 .mes-btn {
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
-  min-width:160px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:space-between; gap:8px;
+  min-width:110px; cursor:pointer;
   background:var(--bg2); border:1px solid var(--border); border-radius:8px;
-  padding:6px 12px; font-size:12px; color:var(--text1); font-family:inherit;
+  padding:5px 10px; font-size:12px; color:var(--text1); font-family:inherit;
   white-space:nowrap;
 }
 .mes-btn:hover { border-color:var(--accent); }
 .mes-drop {
-  display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:300;
-  background:var(--bg2); border:1px solid var(--border); border-radius:10px;
-  padding:8px; min-width:190px; box-shadow:0 8px 28px rgba(0,0,0,.5);
+  display:none; position:absolute; top:calc(100% + 4px); left:0; z-index:300;
+  background:#141b35; border:1px solid rgba(255,255,255,.13); border-radius:10px;
+  padding:4px; min-width:160px; box-shadow:0 12px 32px rgba(0,0,0,.7);
 }
 .mes-drop.open { display:block; }
 .mes-opt {
-  display:flex; align-items:center; gap:9px;
-  padding:7px 8px; border-radius:6px;
-  cursor:pointer; font-size:12px; color:var(--text1); user-select:none;
+  display:flex; align-items:center;
+  padding:6px 12px 6px 8px; border-radius:6px;
+  cursor:pointer; font-size:13px; color:var(--text1); user-select:none;
 }
-.mes-opt:hover { background:rgba(59,130,246,.1); }
-.mes-opt input[type=checkbox] {
-  accent-color:var(--accent); width:14px; height:14px; cursor:pointer; flex-shrink:0;
-}
-.mes-divider { border:none; border-top:1px solid var(--border); margin:6px 2px; }
-.mes-tag {
-  display:inline-block; font-size:10px; font-weight:700;
-  padding:1px 6px; border-radius:4px;
-  background:rgba(37,99,235,.2); color:var(--accent2);
-}
+.mes-opt:hover { background:var(--accent); color:#fff; }
+.mes-opt input[type=checkbox] { display:none; }
+.mes-opt::before { content:''; display:inline-block; width:18px; flex-shrink:0; font-size:12px; color:var(--accent2); }
+.mes-opt:has(input:checked)::before { content:'✓'; }
+.mes-opt:hover::before { color:#fff; }
+.mes-divider { border:none; border-top:1px solid rgba(255,255,255,.1); margin:3px 4px; }
+.mes-tag { display:inline-block; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(37,99,235,.25); color:var(--accent2); }
