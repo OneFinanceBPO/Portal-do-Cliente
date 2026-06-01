@@ -102,18 +102,12 @@
       <span class="filter-lbl">Mês</span>
       <select class="filter-sel" id="selMes" onchange="updateData()">
         <option value="all">Todos</option>
-        <option value="1">Janeiro</option>
-        <option value="2">Fevereiro</option>
-        <option value="3">Março</option>
-        <option value="4">Abril</option>
-        <option value="5" selected>Maio</option>
-        <option value="6">Junho</option>
-        <option value="7">Julho</option>
-        <option value="8">Agosto</option>
-        <option value="9">Setembro</option>
-        <option value="10">Outubro</option>
-        <option value="11">Novembro</option>
-        <option value="12">Dezembro</option>
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+        <option value="3">Março</option><option value="4">Abril</option>
+        <option value="5" selected>Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option>
+        <option value="11">Novembro</option><option value="12">Dezembro</option>
       </select>
       <div style="margin-left:auto;">
         <div class="toggle">
@@ -249,11 +243,6 @@ function setToggle(m) {
   updateData();
 }
 
-  function getMes() {
-    const v = document.getElementById('selMes').value;
-    return v === 'all' ? null : [parseInt(v)];
-  }
-
 function updateData() {
   const ano = document.getElementById('selAno').value;
   if (ano !== '2026') {
@@ -273,31 +262,24 @@ function updateData() {
     chartAberto.update();
     return;
   }
+  const mesVal = document.getElementById('selMes').value;
+  const mesKey = mesVal === 'all' ? 'all' : parseInt(mesVal);
+  const selIdx = mesVal === 'all' ? null : parseInt(mesVal) - 1;
 
-  const sel     = getMes(); // null = Todos, [1..12] = específicos
-  const isTodos = !sel;
-  const selIdxs = sel ? sel.map(m => m - 1) : null;
-
-  // Bar chart
+  // Bar chart: val/qtd + highlight mês selecionado
   const data = mode === 'val' ? recVal : recQtd;
   chartRecebidos.data.datasets[0].data = data;
   chartRecebidos.data.datasets[0].backgroundColor = data.map((_, i) => {
-    if (isTodos) return i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)';
-    return selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)';
+    if (selIdx === null) return i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)';
+    return i === selIdx ? '#2563eb' : 'rgba(59,130,246,0.15)';
   });
   chartRecebidos.options.plugins.tooltip.callbacks.label = ctx =>
-    mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos';
+    (mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos');
   chartRecebidos.update();
 
   // KPIs
   if (_isLimpar) {
-    const k = isTodos
-      ? (kpisRecMes['all'] || { vencidas:0, aVencer:0, recebidas:0, total:0 })
-      : sel.reduce((acc, m) => {
-          const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
-          return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
-                   recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
-        }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
+    const k = kpisRecMes[mesKey] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
     document.getElementById('kpiVencida').textContent  = 'R$ ' + k.vencidas.toLocaleString('pt-BR');
     document.getElementById('kpiAVencer').textContent  = 'R$ ' + k.aVencer.toLocaleString('pt-BR');
     document.getElementById('kpiRecebida').textContent = 'R$ ' + k.recebidas.toLocaleString('pt-BR');
@@ -305,41 +287,17 @@ function updateData() {
   }
 
   // Donut
-  let dd;
-  if (!_isLimpar) {
-    dd = [25, 25, 25, 25];
-  } else if (isTodos) {
-    dd = donutMes['all'];
-  } else if (sel.length === 1) {
-    dd = donutMes[sel[0]] || [0, 0, 0, 0];
-  } else {
-    const k = sel.reduce((acc, m) => {
-      const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
-      return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
-               recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
-    }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
-    const t = k.total || 1;
-    dd = [
-      parseFloat((k.aVencer / t * 100).toFixed(1)),
-      parseFloat((k.recebidas / t * 100).toFixed(1)),
-      parseFloat((k.vencidas / t * 100).toFixed(1)),
-      0,
-    ];
-  }
+  const dd = _isLimpar ? (donutMes[mesKey] || [0,0,0,0]) : [25,25,25,25];
   chartDonut.data.datasets[0].data = dd;
   chartDonut.update();
 
-  // Em Aberto highlight
+  // Em Aberto: highlight mês selecionado
   chartAberto.data.datasets[0].backgroundColor = meses.map((_, i) =>
-    isTodos || selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)');
+    selIdx === null || i === selIdx ? '#2563eb' : 'rgba(59,130,246,0.15)');
   chartAberto.data.datasets[1].backgroundColor = meses.map((_, i) =>
-    isTodos || selIdxs.includes(i) ? '#f43f5e' : 'rgba(244,63,94,0.15)');
+    selIdx === null || i === selIdx ? '#f43f5e' : 'rgba(244,63,94,0.15)');
   chartAberto.update();
 }
-
-}
-
-
 
 function initCharts() {
   chartRecebidos = new Chart(document.getElementById('chartRecebidos'), {
