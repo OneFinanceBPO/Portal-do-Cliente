@@ -622,7 +622,7 @@ updateFluxo();
 function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('pt-BR')+' '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,30000);
-MES_FILTER.init(5, updateFluxo);
+MES_FILTER.init(new Date().getMonth() + 1, updateFluxo);
 updateFluxo();
 </script>
 </body>

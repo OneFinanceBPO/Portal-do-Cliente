@@ -492,7 +492,7 @@ function updateClock() {
 updateDRE();
 updateClock();
 setInterval(updateClock, 30000);
-MES_FILTER.init(5, updateDRE);
+MES_FILTER.init(new Date().getMonth() + 1, updateDRE);
 updateDRE();
 </script>
 </body>
