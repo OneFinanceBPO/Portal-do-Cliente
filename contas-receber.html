@@ -6,34 +6,6 @@
 <title>One Finance — Contas a Receber</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-  .mes-wrap { position:relative; }
-  .mes-btn {
-    display:flex; align-items:center; justify-content:space-between; gap:8px;
-    min-width:160px; cursor:pointer; background:var(--bg2);
-    border:1px solid var(--border); border-radius:8px;
-    padding:6px 12px; font-size:12px; color:var(--text1); font-family:inherit;
-  }
-  .mes-btn:hover { border-color:var(--accent); }
-  .mes-drop {
-    display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:200;
-    background:var(--bg2); border:1px solid var(--border); border-radius:10px;
-    padding:8px; min-width:190px; box-shadow:0 8px 28px rgba(0,0,0,.45);
-  }
-  .mes-drop.open { display:block; }
-  .mes-opt {
-    display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:6px;
-    cursor:pointer; font-size:12px; color:var(--text1); user-select:none;
-  }
-  .mes-opt:hover { background:rgba(59,130,246,.1); }
-  .mes-opt input { accent-color:var(--accent); width:14px; height:14px; cursor:pointer; }
-  .mes-divider { border:none; border-top:1px solid var(--border); margin:6px 0; }
-  .mes-tag {
-    display:inline-block; font-size:10px; font-weight:600;
-    padding:1px 6px; border-radius:4px;
-    background:rgba(37,99,235,.18); color:var(--accent2);
-  }
-</style>
 </head>
 <body>
 
@@ -129,29 +101,29 @@
       </select>
       <span class="filter-lbl">Mês</span>
       <div class="mes-wrap" id="mesWrap">
-        <button class="mes-btn" id="mesBtn" onclick="toggleMesDrop(event)">
+        <button class="mes-btn" id="mesBtn">
           <span id="mesBtnLabel">Maio</span>
           <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
         <div class="mes-drop" id="mesDrop">
-          <label class="mes-opt" onclick="clickTodos(event)">
+          <label class="mes-opt">
             <input type="checkbox" id="chkTodos"> Todos os meses
           </label>
           <hr class="mes-divider">
-          <label class="mes-opt" onclick="clickMes(event,1)"><input type="checkbox" data-m="1"> Janeiro</label>
-          <label class="mes-opt" onclick="clickMes(event,2)"><input type="checkbox" data-m="2"> Fevereiro</label>
-          <label class="mes-opt" onclick="clickMes(event,3)"><input type="checkbox" data-m="3"> Março</label>
-          <label class="mes-opt" onclick="clickMes(event,4)"><input type="checkbox" data-m="4"> Abril</label>
-          <label class="mes-opt" onclick="clickMes(event,5)"><input type="checkbox" data-m="5"> Maio</label>
-          <label class="mes-opt" onclick="clickMes(event,6)"><input type="checkbox" data-m="6"> Junho</label>
-          <label class="mes-opt" onclick="clickMes(event,7)"><input type="checkbox" data-m="7"> Julho</label>
-          <label class="mes-opt" onclick="clickMes(event,8)"><input type="checkbox" data-m="8"> Agosto</label>
-          <label class="mes-opt" onclick="clickMes(event,9)"><input type="checkbox" data-m="9"> Setembro</label>
-          <label class="mes-opt" onclick="clickMes(event,10)"><input type="checkbox" data-m="10"> Outubro</label>
-          <label class="mes-opt" onclick="clickMes(event,11)"><input type="checkbox" data-m="11"> Novembro</label>
-          <label class="mes-opt" onclick="clickMes(event,12)"><input type="checkbox" data-m="12"> Dezembro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="1"> Janeiro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="2"> Fevereiro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="3"> Março</label>
+          <label class="mes-opt"><input type="checkbox" data-m="4"> Abril</label>
+          <label class="mes-opt"><input type="checkbox" data-m="5"> Maio</label>
+          <label class="mes-opt"><input type="checkbox" data-m="6"> Junho</label>
+          <label class="mes-opt"><input type="checkbox" data-m="7"> Julho</label>
+          <label class="mes-opt"><input type="checkbox" data-m="8"> Agosto</label>
+          <label class="mes-opt"><input type="checkbox" data-m="9"> Setembro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="10"> Outubro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="11"> Novembro</label>
+          <label class="mes-opt"><input type="checkbox" data-m="12"> Dezembro</label>
         </div>
       </div>
       <div style="margin-left:auto;">
@@ -238,6 +210,7 @@
   One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4
 </div>
 
+<script src="js/filters.js"></script>
 <script>
 Chart.defaults.color = '#8ba0c4';
 Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
@@ -280,31 +253,97 @@ const donutMes = {
 
 let mode = 'val';
 let chartRecebidos, chartDonut, chartAberto;
-// selectedMeses: null = Todos, array = meses específicos (1-12)
-let selectedMeses = [5];
 
-// ── MULTI-SELECT DROPDOWN ──
-const NOMES_MESES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-function toggleMesDrop(e) {
-  e.stopPropagation();
-  document.getElementById('mesDrop').classList.toggle('open');
-}
-document.addEventListener('click', () => document.getElementById('mesDrop').classList.remove('open'));
-
-function clickTodos(e) {
-  e.stopPropagation();
-  const chk = document.getElementById('chkTodos');
-  chk.checked = !chk.checked;
-  if (chk.checked) {
-    document.querySelectorAll('#mesDrop input[data-m]').forEach(c => c.checked = false);
-    selectedMeses = null;
-  } else {
-    selectedMeses = [];
-  }
-  updateBtnLabel();
+function setToggle(m) {
+  mode = m;
+  document.getElementById('togVal').classList.toggle('on', m==='val');
+  document.getElementById('togQtd').classList.toggle('on', m==='qtd');
   updateData();
+}
+
+function updateData() {
+  const ano = document.getElementById('selAno').value;
+  if (ano !== '2026') {
+    if (_isLimpar) {
+      document.getElementById('kpiVencida').textContent  = 'R$ 0';
+      document.getElementById('kpiAVencer').textContent  = 'R$ 0';
+      document.getElementById('kpiRecebida').textContent = 'R$ 0';
+      document.getElementById('kpiTotal').textContent    = 'R$ 0';
+    }
+    chartRecebidos.data.datasets[0].data = recVal.map(() => 0);
+    chartRecebidos.data.datasets[0].backgroundColor = recVal.map(() => 'rgba(59,130,246,0.25)');
+    chartRecebidos.update();
+    chartDonut.data.datasets[0].data = [25, 25, 25, 25];
+    chartDonut.update();
+    chartAberto.data.datasets[0].backgroundColor = meses.map(() => 'rgba(59,130,246,0.15)');
+    chartAberto.data.datasets[1].backgroundColor = meses.map(() => 'rgba(244,63,94,0.15)');
+    chartAberto.update();
+    return;
+  }
+
+  const sel     = MES_FILTER.getSelected(); // null = Todos, [1..12] = específicos
+  const isTodos = !sel;
+  const selIdxs = sel ? sel.map(m => m - 1) : null;
+
+  // Bar chart
+  const data = mode === 'val' ? recVal : recQtd;
+  chartRecebidos.data.datasets[0].data = data;
+  chartRecebidos.data.datasets[0].backgroundColor = data.map((_, i) => {
+    if (isTodos) return i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)';
+    return selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)';
+  });
+  chartRecebidos.options.plugins.tooltip.callbacks.label = ctx =>
+    mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos';
+  chartRecebidos.update();
+
+  // KPIs
+  if (_isLimpar) {
+    const k = isTodos
+      ? (kpisRecMes['all'] || { vencidas:0, aVencer:0, recebidas:0, total:0 })
+      : sel.reduce((acc, m) => {
+          const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
+          return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
+                   recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
+        }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
+    document.getElementById('kpiVencida').textContent  = 'R$ ' + k.vencidas.toLocaleString('pt-BR');
+    document.getElementById('kpiAVencer').textContent  = 'R$ ' + k.aVencer.toLocaleString('pt-BR');
+    document.getElementById('kpiRecebida').textContent = 'R$ ' + k.recebidas.toLocaleString('pt-BR');
+    document.getElementById('kpiTotal').textContent    = 'R$ ' + k.total.toLocaleString('pt-BR');
+  }
+
+  // Donut
+  let dd;
+  if (!_isLimpar) {
+    dd = [25, 25, 25, 25];
+  } else if (isTodos) {
+    dd = donutMes['all'];
+  } else if (sel.length === 1) {
+    dd = donutMes[sel[0]] || [0, 0, 0, 0];
+  } else {
+    const k = sel.reduce((acc, m) => {
+      const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
+      return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
+               recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
+    }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
+    const t = k.total || 1;
+    dd = [
+      parseFloat((k.aVencer / t * 100).toFixed(1)),
+      parseFloat((k.recebidas / t * 100).toFixed(1)),
+      parseFloat((k.vencidas / t * 100).toFixed(1)),
+      0,
+    ];
+  }
+  chartDonut.data.datasets[0].data = dd;
+  chartDonut.update();
+
+  // Em Aberto highlight
+  chartAberto.data.datasets[0].backgroundColor = meses.map((_, i) =>
+    isTodos || selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)');
+  chartAberto.data.datasets[1].backgroundColor = meses.map((_, i) =>
+    isTodos || selIdxs.includes(i) ? '#f43f5e' : 'rgba(244,63,94,0.15)');
+  chartAberto.update();
+}
+
 }
 
 function clickMes(e, m) {
@@ -498,7 +537,7 @@ function updateClock() {
 
 updateClock(); setInterval(updateClock, 30000);
 initCharts();
-initMesSelector();
+MES_FILTER.init(5, updateData);
 updateData();
 </script>
 </body>
