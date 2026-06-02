@@ -3,12 +3,19 @@ const GH_SYNC = (() => {
   const REPO    = 'OneFinanceBPO/Portal-do-Cliente';
   const API     = `https://api.github.com/repos/${REPO}/contents/`;
   const RAW     = `https://raw.githubusercontent.com/${REPO}/main/`;
-  const TOKEN_KEY = 'of_github_token';
+  const TOKEN_KEY  = 'of_github_token';
+  const WORKER_KEY = 'of_worker_url';
+  const SECRET_KEY = 'of_app_secret';
 
   const sha = {};   // cache: sha['data/clients.json'] = '...'
 
   function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
   function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+
+  function getWorkerUrl() { return localStorage.getItem(WORKER_KEY) || ''; }
+  function setWorkerUrl(u) { localStorage.setItem(WORKER_KEY, u); }
+  function getAppSecret() { return localStorage.getItem(SECRET_KEY) || ''; }
+  function setAppSecret(s) { localStorage.setItem(SECRET_KEY, s); }
 
   const toB64   = s => btoa(unescape(encodeURIComponent(s)));
   const fromB64 = s => decodeURIComponent(escape(atob(s.replace(/\n/g, ''))));
@@ -41,6 +48,29 @@ const GH_SYNC = (() => {
 
   /* Internal: write a JSON file to GitHub */
   async function writeFile(path, payload) {
+    const workerUrl = getWorkerUrl();
+
+    // ── Worker mode (recommended) ──
+    if (workerUrl) {
+      try {
+        const res = await fetch(`${workerUrl}/api/sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-App-Secret': getAppSecret(),
+          },
+          body: JSON.stringify({ path, content: payload, sha: sha[path] }),
+        });
+        const data = await res.json();
+        if (!res.ok) return { ok: false, error: data.error };
+        if (data.sha) sha[path] = data.sha;
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    // ── Legacy: direct GitHub token ──
     const token = getToken();
     if (!token) return { ok: false, noToken: true };
 
@@ -76,6 +106,10 @@ const GH_SYNC = (() => {
   return {
     getToken,
     setToken,
+    getWorkerUrl,
+    setWorkerUrl,
+    getAppSecret,
+    setAppSecret,
     hashPassword,
 
     async testToken(token) {

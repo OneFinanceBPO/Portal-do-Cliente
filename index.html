@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>One Finance — Login</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="js/auth.js"></script>
 <script src="js/sync.js"></script>
+<script src="js/toast.js"></script>
 <style>
   .error-msg { font-size:12px; color:var(--red); margin-top:6px; display:none; }
   .form-input.err { border-color:var(--red); }
@@ -118,11 +120,25 @@
 
 <div class="footer-login">
   <span class="footer-dot" style="display:inline-block; width:5px; height:5px; background:var(--green); border-radius:50%; margin-right:6px;"></span>
-  One Finance BPO Financeiro &nbsp;·&nbsp; v1.1.4
+  One Finance BPO Financeiro &nbsp;·&nbsp; v2.0.0
 </div>
 
 <script>
   let rcDone = false;
+
+  // Show timeout message if redirected from a session timeout
+  (function() {
+    const reason = new URLSearchParams(location.search).get('reason');
+    if (reason === 'timeout') {
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('loginForm');
+        const msg = document.createElement('div');
+        msg.style.cssText = 'background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;font-size:12px;padding:10px 14px;border-radius:8px;margin-bottom:16px;text-align:center;';
+        msg.textContent = 'Sua sessão expirou por inatividade. Por favor, faça login novamente.';
+        form.insertAdjacentElement('beforebegin', msg);
+      });
+    }
+  })();
 
   function togglePass() {
     const inp = document.getElementById('senha');
@@ -199,9 +215,11 @@
         }
       }
       localStorage.setItem('of_login_email', emailVal);
+      AUTH.setSession({ email: emailVal, nome: perfil?.nome || emailVal, tipo: perfil?.tipo || 'adm', empresas: perfil?.acesso || [] });
       window.location.href = 'gerenciamento.html';
     } else if (isAdmin) {
       localStorage.setItem('of_login_email', emailVal);
+      AUTH.setSession({ email: emailVal, nome: emailVal, tipo: 'adm', empresas: [] });
       window.location.href = 'gerenciamento.html';
     } else {
       document.getElementById('emailErr').textContent = 'Acesso não autorizado.';
