@@ -124,7 +124,34 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
     </button>
-    <div class="avatar" title="Administrador">OF</div>
+    <!-- Avatar dropdown -->
+    <div style="position:relative;" id="avatarWrap">
+      <div class="avatar" id="avatarBtn" title="Meu perfil" style="cursor:pointer;" onclick="toggleAvatarMenu()">OF</div>
+      <div id="avatarMenu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);
+        background:#0b1131;border:1px solid rgba(59,130,246,.2);border-radius:10px;
+        padding:6px;min-width:170px;box-shadow:0 12px 32px rgba(0,0,0,.7);z-index:400;">
+        <div style="padding:10px 12px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div style="font-size:12px;font-weight:700;" id="avatarMenuName">Administrador</div>
+          <div style="font-size:11px;color:var(--text2);" id="avatarMenuEmail"></div>
+        </div>
+        <a href="perfil.html" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;color:var(--text1);font-size:13px;transition:background .15s;text-decoration:none;"
+           onmouseover="this.style.background='rgba(59,130,246,.1)'" onmouseout="this.style.background='none'">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Meu Perfil
+        </a>
+        <button onclick="ACTIVITY_LOG.add('logout','Logout manual'); AUTH.clearSession(); window.location.href='index.html';"
+          style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;
+            color:var(--red);font-size:13px;background:none;border:none;cursor:pointer;width:100%;transition:background .15s;"
+          onmouseover="this.style.background='rgba(244,63,94,.08)'" onmouseout="this.style.background='none'">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Sair
+        </button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -936,7 +963,31 @@ async function init() {
   ]);
 }
 
+// ── AVATAR MENU ──
+function toggleAvatarMenu() {
+  const menu = document.getElementById('avatarMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('avatarWrap')?.contains(e.target)) {
+    const menu = document.getElementById('avatarMenu');
+    if (menu) menu.style.display = 'none';
+  }
+});
+
+function populateAvatar() {
+  const s = AUTH.getSession();
+  if (!s) return;
+  const initials = ((s.nome || s.email || '?')[0] || '?').toUpperCase() +
+    ((s.nome || '').split(' ')[1]?.[0] || '').toUpperCase();
+  document.getElementById('avatarBtn').textContent       = initials || 'OF';
+  document.getElementById('avatarMenuName').textContent  = s.nome || s.email;
+  document.getElementById('avatarMenuEmail').textContent = s.email;
+}
+
 updateClock(); setInterval(updateClock, 30000);
+populateAvatar();
 init();
 </script>
 
