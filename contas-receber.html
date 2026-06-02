@@ -413,7 +413,7 @@ function updateClock() {
 
 updateClock(); setInterval(updateClock, 30000);
 initCharts();
-MES_FILTER.init(new Date().getMonth() + 1, updateData);
+MES_FILTER.init(null, updateData);
 updateData();
 </script>
 

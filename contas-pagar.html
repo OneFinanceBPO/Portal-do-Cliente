@@ -433,7 +433,7 @@ function updateClock() {
     now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 updateClock(); setInterval(updateClock, 30000);
-MES_FILTER.init(new Date().getMonth() + 1, updateMes);
+MES_FILTER.init(null, updateMes);
 updateMes();
 </script>
 
