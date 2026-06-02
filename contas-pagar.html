@@ -18,8 +18,10 @@
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="this.classList.remove('open'); document.getElementById('mainSidebar').classList.remove('open');"></div>
+
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="mainSidebar">
   <div class="brand"><a href="gerenciamento.html"><img src="logo.png" alt="One Finance"></a></div>
   <nav>
     <a href="contas-receber.html"><button class="nav-btn" title="A Receber">
@@ -48,6 +50,12 @@
 <!-- HEADER -->
 <header class="header">
   <div class="header-left">
+    <button class="hamburger" title="Menu"
+      onclick="document.getElementById('mainSidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open');">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
     <a href="gerenciamento.html" class="icon-btn" title="Voltar para lista de clientes">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
     </a>

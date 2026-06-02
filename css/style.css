@@ -392,3 +392,107 @@ tbody tr:hover td { background:rgba(59,130,246,.04); }
 .mes-opt:hover::before { color:#fff; }
 .mes-divider { border:none; border-top:1px solid rgba(255,255,255,.1); margin:3px 4px; }
 .mes-tag { display:inline-block; font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(37,99,235,.25); color:var(--accent2); }
+
+/* ── MOBILE RESPONSIVE ── */
+
+/* Hamburger button — hidden on desktop */
+.hamburger {
+  display:none; background:none; border:none; color:var(--text2); cursor:pointer;
+  padding:4px; border-radius:6px; align-items:center; justify-content:center;
+  transition:color .15s;
+}
+.hamburger:hover { color:var(--text); }
+.hamburger svg { width:22px; height:22px; }
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+  z-index:190; opacity:0; transition:opacity .25s;
+}
+.sidebar-overlay.open { display:block; opacity:1; }
+
+@media (max-width: 900px) {
+  /* ── Sidebar becomes a slide-in drawer ── */
+  :root { --sw: 0px; }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+    z-index:200;
+    width: 220px;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar nav, .sidebar .bottom-nav { padding: 0 12px; }
+  .nav-btn { justify-content: flex-start; gap: 10px; padding: 0 10px; }
+  .nav-btn svg { flex-shrink: 0; }
+  .nav-tooltip { position:static; opacity:1; pointer-events:auto; background:none; border:none; padding:0; font-size:13px; white-space:nowrap; transform:none; }
+
+  /* Show hamburger */
+  .hamburger { display: flex; }
+
+  /* Header adjusts */
+  .header { left: 0; padding: 0 14px; gap: 8px; }
+  .header-right { gap: 6px; }
+  .time-badge { display: none; }
+  .header-left { gap: 8px; }
+  .logo-text { font-size: 13px; }
+  .divider-v { display: none; }
+
+  /* Main fills full width */
+  .main { margin-left: 0 !important; padding: 72px 14px 14px; }
+  .page { padding: 0; }
+
+  /* Client grid → single column */
+  .clients-grid { grid-template-columns: 1fr; }
+
+  /* Top bar wraps naturally */
+  .top-bar { gap: 8px; }
+
+  /* Modals → full width on small screens */
+  .modal {
+    width: calc(100vw - 32px) !important;
+    max-width: 100% !important;
+    padding: 20px !important;
+  }
+  .confirm-modal { width: calc(100vw - 32px) !important; }
+  .modal-overlay { padding: 16px; align-items: flex-end; }
+
+  /* Tables → horizontal scroll */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Login / dashboard split → stack */
+  .login-page, .home-page { flex-direction: column; }
+  .login-left, .home-left { width: 100%; min-height: 220px; padding: 28px 24px; }
+  .login-feats { display: none; }
+  .login-right, .home-right { padding: 24px 20px 48px; }
+  .login-box { padding: 24px 20px; }
+
+  /* DRE table wide on mobile */
+  .dre-wrap { border-radius: 8px; }
+
+  /* Profile card full width */
+  .profile-card { padding: 20px; }
+}
+
+@media (max-width: 600px) {
+  /* Even tighter on phones */
+  .header { padding: 0 10px; }
+  .main   { padding: 68px 10px 10px; }
+  .clients-grid { gap: 10px; }
+  .client-card { padding: 14px 16px; }
+
+  /* Sec header wraps */
+  .sec-header { flex-wrap: wrap; gap: 8px; }
+
+  /* Top bar controls stack */
+  .top-bar { flex-direction: column; align-items: flex-start; }
+  .top-bar > div:last-child { margin-left: 0 !important; width: 100%; }
+  .top-bar input, .top-bar select { width: 100%; }
+
+  /* Reduce font on footer */
+  .footer { font-size: 10px; padding: 0 12px; }
+
+  /* Activity log table compact */
+  .log-table td:nth-child(2) { display: none; } /* hide user column */
+  .log-table th:nth-child(2) { display: none; }
+}
