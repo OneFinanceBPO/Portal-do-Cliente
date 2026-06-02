@@ -8,6 +8,7 @@
 <script src="js/auth.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/toast.js"></script>
+<script src="js/activity-log.js"></script>
 <style>
   .error-msg { font-size:12px; color:var(--red); margin-top:6px; display:none; }
   .form-input.err { border-color:var(--red); }
@@ -223,10 +224,12 @@
       }
       localStorage.setItem('of_login_email', emailVal);
       AUTH.setSession({ email: emailVal, nome: perfil?.nome || emailVal, tipo: perfil?.tipo || 'adm', empresas: perfil?.acesso || [] });
+      ACTIVITY_LOG.add('login', 'Login bem-sucedido', emailVal);
       window.location.href = 'gerenciamento.html';
     } else if (isAdmin) {
       localStorage.setItem('of_login_email', emailVal);
       AUTH.setSession({ email: emailVal, nome: emailVal, tipo: 'adm', empresas: [] });
+      ACTIVITY_LOG.add('login', 'Login admin', emailVal);
       window.location.href = 'gerenciamento.html';
     } else {
       document.getElementById('emailErr').textContent = 'Acesso não autorizado.';

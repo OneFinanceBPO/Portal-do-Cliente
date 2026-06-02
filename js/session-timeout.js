@@ -18,6 +18,7 @@ const SESSION_TIMEOUT = (() => {
 
   function logout() {
     clearInterval(countdownInterval);
+    if (typeof ACTIVITY_LOG !== 'undefined') ACTIVITY_LOG.add('session_expired', 'Sessão expirada por inatividade');
     if (typeof AUTH !== 'undefined') AUTH.clearSession();
     else sessionStorage.clear();
     window.location.href = 'index.html?reason=timeout';

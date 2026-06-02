@@ -8,6 +8,7 @@
 <script src="js/auth.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/session-timeout.js"></script>
+<script src="js/activity-log.js"></script>
 <style>
   .top-bar { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:500; align-items:center; justify-content:center; }
@@ -34,6 +35,25 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   #syncBadge.syncing .dot { animation:pulse .8s infinite; }
   .pw-bar { flex:1; border-radius:2px; background:var(--border); transition:background .2s; }
+
+  /* Activity log */
+  .log-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .log-table th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600;
+    color:var(--text2); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .log-table td { padding:10px 14px; border-bottom:1px solid var(--border2); vertical-align:middle; }
+  .log-table tr:last-child td { border-bottom:none; }
+  .log-table tr:hover td { background:rgba(59,130,246,.04); }
+  .log-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+  .log-badge.login    { background:rgba(34,197,94,.12);  color:var(--green); }
+  .log-badge.logout   { background:rgba(148,163,184,.1); color:var(--text2); }
+  .log-badge.client   { background:rgba(37,99,235,.12);  color:var(--accent2); }
+  .log-badge.perfil   { background:rgba(251,191,36,.12); color:#fbbf24; }
+  .log-badge.sync     { background:rgba(168,85,247,.12); color:#c084fc; }
+  .log-badge.security { background:rgba(244,63,94,.12);  color:var(--red); }
+  .log-badge.other    { background:rgba(148,163,184,.1); color:var(--text2); }
+  .log-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .log-toolbar { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .log-empty { text-align:center; padding:40px; color:var(--text2); font-size:13px; }
 </style>
 </head>
 <body>
@@ -56,6 +76,12 @@
       </svg>
       <span class="nav-tooltip">Perfil</span>
     </button>
+    <button class="nav-btn" id="btnLogNav" title="Atividade" onclick="openLogPanel()">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+      </svg>
+      <span class="nav-tooltip">Atividade</span>
+    </button>
     <button class="nav-btn" title="Suporte">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -64,7 +90,7 @@
     </button>
   </nav>
   <div class="bottom-nav">
-    <button class="nav-btn" title="Sair" onclick="AUTH.clearSession(); window.location.href='index.html';">
+    <button class="nav-btn" title="Sair" onclick="ACTIVITY_LOG.add('logout','Logout manual'); AUTH.clearSession(); window.location.href='index.html';">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
       </svg>
@@ -353,6 +379,7 @@ async function saveToken() {
     GH_SYNC.setAppSecret(workerSecret);
     // Clear legacy token when using worker mode
     GH_SYNC.setToken('');
+    ACTIVITY_LOG.add('token_config', 'Modo Worker configurado');
     status.textContent = 'Worker configurado!';
     status.style.color = 'var(--green)';
     setTimeout(() => { closeModal(); init(); }, 800);
@@ -368,6 +395,7 @@ async function saveToken() {
       GH_SYNC.setToken(legacyToken);
       GH_SYNC.setWorkerUrl('');
       GH_SYNC.setAppSecret('');
+      ACTIVITY_LOG.add('token_config', 'Token legado configurado');
       status.textContent = 'Token válido!';
       status.style.color = 'var(--green)';
       setTimeout(() => { closeModal(); init(); }, 800);
@@ -382,6 +410,72 @@ async function saveToken() {
   status.style.color = 'var(--red)';
 }
 
+// ── ACTIVITY LOG PANEL ──
+const LOG_BADGE_MAP = {
+  login:'login', logout:'logout', session_expired:'logout',
+  client_add:'client', client_edit:'client', client_delete:'client',
+  perfil_add:'perfil', perfil_edit:'perfil', perfil_delete:'perfil',
+  sync_ok:'sync', sync_error:'sync', token_config:'sync',
+  password_reset:'security',
+};
+
+function logCategoryOf(action) {
+  return LOG_BADGE_MAP[action] || 'other';
+}
+
+function renderLog() {
+  const filter  = document.getElementById('logFilter')?.value || '';
+  const entries = ACTIVITY_LOG.getAll();
+  const wrap    = document.getElementById('logTableWrap');
+
+  const filtered = filter
+    ? entries.filter(e => logCategoryOf(e.action) === filter)
+    : entries;
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="log-empty">Nenhuma atividade registrada.</div>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Usuário</th>
+          <th>Ação</th>
+          <th>Detalhes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered.map(e => {
+          const cat  = logCategoryOf(e.action);
+          const date = new Date(e.ts);
+          const ts   = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+          return `
+          <tr>
+            <td style="color:var(--text2);white-space:nowrap;">${ts}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${e.user}">${e.user}</td>
+            <td><span class="log-badge ${cat}">${ACTIVITY_LOG.label(e.action)}</span></td>
+            <td style="color:var(--text2);">${e.details || '—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function openLogPanel() {
+  renderLog();
+  closeModal();
+  document.getElementById('logModal').classList.add('open');
+}
+
+function clearLog() {
+  if (!confirm('Limpar todo o histórico de atividades?')) return;
+  ACTIVITY_LOG.clear();
+  renderLog();
+}
+
 // ── PUSH helpers ──
 function hasSyncConfig() {
   return !!(GH_SYNC.getWorkerUrl() || GH_SYNC.getToken());
@@ -392,6 +486,7 @@ async function pushClients() {
   if (!hasSyncConfig()) { setSyncBadge('error', 'Sync não configurado'); openTokenModal(); return; }
   const r = await GH_SYNC.saveClients(clients);
   setSyncBadge(r.ok ? 'synced' : 'error', r.ok ? 'Sincronizado' : 'Erro ao salvar');
+  ACTIVITY_LOG.add(r.ok ? 'sync_ok' : 'sync_error', r.ok ? 'clients.json salvo' : (r.error || ''));
 }
 
 async function pushPerfis() {
@@ -399,6 +494,7 @@ async function pushPerfis() {
   if (!hasSyncConfig()) { setSyncBadge('error', 'Sync não configurado'); openTokenModal(); return; }
   const r = await GH_SYNC.savePerfis(perfis);
   setSyncBadge(r.ok ? 'synced' : 'error', r.ok ? 'Sincronizado' : 'Erro ao salvar');
+  ACTIVITY_LOG.add(r.ok ? 'sync_ok' : 'sync_error', r.ok ? 'perfis.json salvo' : (r.error || ''));
 }
 
 // ── RENDER ──
@@ -488,8 +584,10 @@ async function saveClient() {
   if (editId) {
     const c = clients.find(x => x.id === editId);
     c.name = name; c.cnpj = cnpj || c.cnpj; c.segment = seg;
+    ACTIVITY_LOG.add('client_edit', name);
   } else {
     clients.push({ id: Date.now(), name, segment: seg, cnpj: cnpj || '—' });
+    ACTIVITY_LOG.add('client_add', name);
   }
   closeModal();
   renderClients(getVisibleClients());
@@ -497,6 +595,8 @@ async function saveClient() {
 }
 
 async function confirmDelete() {
+  const c = clients.find(x => x.id === deleteId);
+  ACTIVITY_LOG.add('client_delete', c?.name || '');
   clients = clients.filter(x => x.id !== deleteId);
   closeModal();
   renderClients(getVisibleClients());
@@ -659,14 +759,18 @@ async function savePerfil() {
   if (editPerfilId) {
     const idx = perfis.findIndex(x => x.id === editPerfilId);
     perfis[idx] = { ...perfis[idx], ...dados };
+    ACTIVITY_LOG.add('perfil_edit', dados.email);
   } else {
     perfis.push({ id: Date.now(), ...dados });
+    ACTIVITY_LOG.add('perfil_add', dados.email);
   }
   backToPerfis();
   await pushPerfis();
 }
 
 async function deletePerfil(id) {
+  const p = perfis.find(x => x.id === id);
+  ACTIVITY_LOG.add('perfil_delete', p?.email || '');
   perfis = perfis.filter(x => x.id !== id);
   renderPerfis();
   await pushPerfis();
@@ -716,6 +820,37 @@ async function init() {
 updateClock(); setInterval(updateClock, 30000);
 init();
 </script>
+
+<!-- MODAL: LOG DE ATIVIDADES -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal" style="width:760px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <h3 style="margin:0;">Log de Atividades</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="logFilter" class="form-input filter-sel" style="padding:6px 10px;font-size:12px;min-width:140px;" onchange="renderLog()">
+          <option value="">Todas as ações</option>
+          <option value="login">Login / Logout</option>
+          <option value="client">Clientes</option>
+          <option value="perfil">Perfis</option>
+          <option value="sync">Sincronização</option>
+          <option value="security">Segurança</option>
+        </select>
+        <button class="btn" onclick="ACTIVITY_LOG.exportCSV()" style="padding:6px 14px;font-size:12px;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);">
+          ↓ Exportar CSV
+        </button>
+        <button class="btn btn-ghost" onclick="clearLog()" style="padding:6px 14px;font-size:12px;color:var(--red);border-color:rgba(244,63,94,.3);">
+          Limpar
+        </button>
+      </div>
+    </div>
+    <div class="log-wrap">
+      <div id="logTableWrap"></div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <!-- SESSION TIMEOUT WARNING -->
 <div class="modal-overlay" id="sessionWarningModal">
