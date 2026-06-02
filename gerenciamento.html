@@ -128,9 +128,39 @@
   <div class="page">
 
     <!-- TOP BAR -->
-    <div class="top-bar">
+    <div class="top-bar" style="flex-wrap:wrap; gap:10px;">
+      <!-- Search -->
+      <div style="position:relative; flex:1; min-width:180px; max-width:320px;">
+        <input class="form-input" type="text" id="searchInput" placeholder="Buscar cliente…"
+               style="padding:8px 12px 8px 34px; font-size:13px;"
+               oninput="applyFilters()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+             style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text3);pointer-events:none;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+        </svg>
+      </div>
+
+      <!-- Segment filter -->
+      <select class="form-input filter-sel" id="segFilter" style="padding:8px 10px;font-size:13px;min-width:150px;" onchange="applyFilters()">
+        <option value="">Todos os segmentos</option>
+        <option>Comércio</option>
+        <option>Serviços</option>
+        <option>Indústria</option>
+        <option>Tecnologia</option>
+        <option>Saúde</option>
+        <option>Construção Civil</option>
+      </select>
+
+      <!-- Sort -->
+      <select class="form-input filter-sel" id="sortOrder" style="padding:8px 10px;font-size:13px;min-width:160px;" onchange="applyFilters()">
+        <option value="name_asc">Nome A → Z</option>
+        <option value="name_desc">Nome Z → A</option>
+        <option value="seg_asc">Segmento A → Z</option>
+        <option value="recent">Mais recentes</option>
+      </select>
+
       <div style="display:flex; gap:10px; align-items:center; margin-left:auto;">
-        <span style="font-size:12px; color:var(--text2);" id="countLabel"></span>
+        <span style="font-size:12px; color:var(--text2); white-space:nowrap;" id="countLabel"></span>
         <button class="btn btn-primary" id="btnNovoCliente" onclick="openAddModal()">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -498,8 +528,29 @@ async function pushPerfis() {
 }
 
 // ── RENDER ──
+function highlight(text, term) {
+  if (!term) return text;
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(37,99,235,.35);color:inherit;border-radius:2px;padding:0 1px;">$1</mark>');
+}
+
 function renderClients(list) {
-  const grid = document.getElementById('clientsGrid');
+  const grid    = document.getElementById('clientsGrid');
+  const term    = (document.getElementById('searchInput')?.value || '').trim();
+  const total   = getVisibleClients().length;
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;color:var(--text2);">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 12px;display:block;color:var(--text3);">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+      </svg>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Nenhum cliente encontrado</div>
+      <div style="font-size:12px;">Tente outros termos ou remova o filtro.</div>
+    </div>`;
+    document.getElementById('countLabel').textContent = `0 de ${total} cliente${total !== 1 ? 's' : ''}`;
+    return;
+  }
+
   grid.innerHTML = list.map(c => `
     <div class="client-card" onclick="goClient(${c.id})">
       <div class="client-icon">
@@ -508,8 +559,8 @@ function renderClients(list) {
         </svg>
       </div>
       <div class="client-info">
-        <div class="client-name">${c.name}</div>
-        <div class="client-meta">${c.segment} · ${c.cnpj}</div>
+        <div class="client-name">${highlight(c.name, term)}</div>
+        <div class="client-meta">${highlight(c.segment, term)} · ${highlight(c.cnpj, term)}</div>
       </div>
       ${!isLimitedUser ? `
       <div class="client-actions" onclick="event.stopPropagation()">
@@ -526,8 +577,11 @@ function renderClients(list) {
       </div>` : ''}
     </div>
   `).join('');
-  document.getElementById('countLabel').textContent =
-    `${list.length} cliente${list.length !== 1 ? 's' : ''} cadastrado${list.length !== 1 ? 's' : ''}`;
+
+  const shown = list.length;
+  document.getElementById('countLabel').textContent = shown === total
+    ? `${total} cliente${total !== 1 ? 's' : ''}`
+    : `${shown} de ${total} cliente${total !== 1 ? 's' : ''}`;
 }
 
 function getVisibleClients() {
@@ -538,6 +592,36 @@ function getVisibleClients() {
   if (!perfil || (perfil.tipo || 'adm') === 'adm') return clients;
   if (!perfil.acesso || perfil.acesso.length === 0) return [];
   return clients.filter(c => perfil.acesso.includes(c.id));
+}
+
+function applyFilters() {
+  const term = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  const seg  = document.getElementById('segFilter')?.value || '';
+  const sort = document.getElementById('sortOrder')?.value || 'name_asc';
+
+  let list = getVisibleClients();
+
+  if (term) {
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(term) ||
+      c.segment.toLowerCase().includes(term) ||
+      c.cnpj.toLowerCase().includes(term)
+    );
+  }
+
+  if (seg) {
+    list = list.filter(c => c.segment === seg);
+  }
+
+  list = [...list].sort((a, b) => {
+    if (sort === 'name_asc')  return a.name.localeCompare(b.name, 'pt-BR');
+    if (sort === 'name_desc') return b.name.localeCompare(a.name, 'pt-BR');
+    if (sort === 'seg_asc')   return a.segment.localeCompare(b.segment, 'pt-BR') || a.name.localeCompare(b.name, 'pt-BR');
+    if (sort === 'recent')    return (b.id || 0) - (a.id || 0);
+    return 0;
+  });
+
+  renderClients(list);
 }
 
 function goClient(id) {
@@ -590,7 +674,7 @@ async function saveClient() {
     ACTIVITY_LOG.add('client_add', name);
   }
   closeModal();
-  renderClients(getVisibleClients());
+  applyFilters();
   await pushClients();
 }
 
@@ -599,7 +683,7 @@ async function confirmDelete() {
   ACTIVITY_LOG.add('client_delete', c?.name || '');
   clients = clients.filter(x => x.id !== deleteId);
   closeModal();
-  renderClients(getVisibleClients());
+  applyFilters();
   await pushClients();
 }
 
@@ -814,7 +898,7 @@ async function init() {
   [clients, perfis] = await Promise.all([GH_SYNC.loadClients(), GH_SYNC.loadPerfis()]);
   setSyncBadge(hasSyncConfig() ? 'synced' : 'error', hasSyncConfig() ? 'Sincronizado' : 'Sync não configurado');
   applyAccessRestrictions();
-  renderClients(getVisibleClients());
+  applyFilters();
 }
 
 updateClock(); setInterval(updateClock, 30000);
