@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — Nova Senha</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/sync.js"></script>
+<script src="js/toast.js"></script>
+<style>
+  .error-msg   { font-size:12px; color:var(--red); margin-top:6px; display:none; }
+  .form-input.err { border-color:var(--red); }
+
+  /* Password strength */
+  .pw-strength { margin-top:8px; }
+  .pw-bars     { display:flex; gap:4px; height:4px; margin-bottom:6px; }
+  .pw-bar      { flex:1; border-radius:2px; background:var(--border); transition:background .25s; }
+  .pw-bars[data-level="1"] .pw-bar:nth-child(1) { background:var(--red); }
+  .pw-bars[data-level="2"] .pw-bar:nth-child(-n+2) { background:var(--orange); }
+  .pw-bars[data-level="3"] .pw-bar:nth-child(-n+3) { background:#facc15; }
+  .pw-bars[data-level="4"] .pw-bar:nth-child(-n+4) { background:var(--green); }
+  .pw-checks   { display:flex; flex-direction:column; gap:3px; }
+  .pw-check    { font-size:11px; color:var(--text3); display:flex; align-items:center; gap:6px; transition:color .2s; }
+  .pw-check.ok { color:var(--green); }
+  .pw-check::before { content:'○'; font-size:10px; }
+  .pw-check.ok::before { content:'●'; }
+
+  /* Invalid / expired token */
+  .token-error { text-align:center; }
+  .token-error .err-icon { width:56px; height:56px; border-radius:50%; background:rgba(244,63,94,.12); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .token-error .err-icon svg { width:28px; height:28px; color:var(--red); }
+
+  /* Success */
+  .success-box { display:none; text-align:center; }
+  .success-icon { width:56px; height:56px; border-radius:50%; background:rgba(34,197,94,.12); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .success-icon svg { width:28px; height:28px; color:var(--green); }
+</style>
+</head>
+<body>
+
+<div class="login-page">
+  <!-- LEFT: BRANDING -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-logo"><img src="logo.png" alt="One Finance" style="width:60px;height:60px;object-fit:contain;"></div>
+      <h1>Portal do <span>Usuário</span></h1>
+      <p>Defina uma nova senha segura para acessar sua conta.</p>
+    </div>
+
+    <div class="login-feats">
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        Mínimo 8 caracteres
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        Letras maiúsculas, minúsculas e números
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </div>
+        Caractere especial recomendado
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM -->
+  <div class="login-right">
+    <div class="login-box">
+
+      <!-- Loading / validating token -->
+      <div id="stepLoading" style="text-align:center; padding:20px 0;">
+        <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;"></div>
+        <p style="font-size:13px;color:var(--text2);">Verificando link…</p>
+      </div>
+
+      <!-- Token invalid / expired -->
+      <div id="stepInvalid" style="display:none;" class="token-error">
+        <div class="err-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <h2 style="margin-bottom:8px;">Link inválido</h2>
+        <p style="font-size:13px; color:var(--text2); margin-bottom:24px; line-height:1.6;" id="invalidMsg">
+          Este link de recuperação é inválido ou expirou.<br>Solicite um novo link.
+        </p>
+        <a href="recuperar-senha.html" class="btn btn-primary" style="display:block; text-align:center; padding:10px; border-radius:8px; font-size:13px; font-weight:600;">
+          Solicitar novo link
+        </a>
+      </div>
+
+      <!-- New password form -->
+      <div id="stepForm" style="display:none;">
+        <h2>Nova senha</h2>
+        <p class="sub" id="emailLabel">Definindo nova senha para sua conta</p>
+
+        <form id="newPasswordForm" onsubmit="handleNewPassword(event)">
+          <div class="form-group">
+            <label class="form-lbl" for="novaSenha">Nova senha</label>
+            <div class="form-wrap">
+              <input class="form-input" type="password" id="novaSenha" placeholder="••••••••"
+                     autocomplete="new-password" oninput="checkStrength(this.value)">
+              <span class="input-ico" onclick="togglePass('novaSenha','eye1Open','eye1Closed')" style="cursor:pointer;">
+                <svg id="eye1Open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eye1Closed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </span>
+            </div>
+            <div class="error-msg" id="senhaErr">A senha não atende aos requisitos mínimos.</div>
+
+            <!-- Strength indicator -->
+            <div class="pw-strength">
+              <div class="pw-bars" id="pwBars" data-level="0">
+                <div class="pw-bar"></div>
+                <div class="pw-bar"></div>
+                <div class="pw-bar"></div>
+                <div class="pw-bar"></div>
+              </div>
+              <div class="pw-checks">
+                <span class="pw-check" id="chkLen">Mínimo 8 caracteres</span>
+                <span class="pw-check" id="chkUpper">Letra maiúscula</span>
+                <span class="pw-check" id="chkLower">Letra minúscula</span>
+                <span class="pw-check" id="chkNum">Número</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label class="form-lbl" for="confirmarSenha">Confirmar nova senha</label>
+            <div class="form-wrap">
+              <input class="form-input" type="password" id="confirmarSenha" placeholder="••••••••" autocomplete="new-password">
+              <span class="input-ico" onclick="togglePass('confirmarSenha','eye2Open','eye2Closed')" style="cursor:pointer;">
+                <svg id="eye2Open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <svg id="eye2Closed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              </span>
+            </div>
+            <div class="error-msg" id="confirmErr">As senhas não coincidem.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-login" id="saveBtn" style="margin-top:20px;">Salvar nova senha</button>
+        </form>
+      </div>
+
+      <!-- Success -->
+      <div class="success-box" id="stepSuccess">
+        <div class="success-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <h2 style="margin-bottom:8px;">Senha alterada!</h2>
+        <p style="font-size:13px; color:var(--text2); margin-bottom:24px; line-height:1.6;">
+          Sua senha foi atualizada com sucesso.<br>Você será redirecionado para o login.
+        </p>
+        <a href="index.html" class="btn btn-primary" style="display:block; text-align:center; padding:10px; border-radius:8px; font-size:13px; font-weight:600;">
+          Ir para o login
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer-login">
+  <span class="footer-dot" style="display:inline-block; width:5px; height:5px; background:var(--green); border-radius:50%; margin-right:6px;"></span>
+  One Finance BPO Financeiro &nbsp;·&nbsp; v2.0.0
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  let resetEmail = '';
+  let resetToken = '';
+  let perfilData = null;
+  let allPerfis  = [];
+
+  // ── Strength checker
+  function checkStrength(val) {
+    const chkLen   = document.getElementById('chkLen');
+    const chkUpper = document.getElementById('chkUpper');
+    const chkLower = document.getElementById('chkLower');
+    const chkNum   = document.getElementById('chkNum');
+    const bars     = document.getElementById('pwBars');
+
+    const len   = val.length >= 8;
+    const upper = /[A-Z]/.test(val);
+    const lower = /[a-z]/.test(val);
+    const num   = /[0-9]/.test(val);
+
+    chkLen.classList.toggle('ok', len);
+    chkUpper.classList.toggle('ok', upper);
+    chkLower.classList.toggle('ok', lower);
+    chkNum.classList.toggle('ok', num);
+
+    const level = [len, upper, lower, num].filter(Boolean).length;
+    bars.dataset.level = val.length ? level : 0;
+  }
+
+  function togglePass(inputId, openId, closedId) {
+    const inp    = document.getElementById(inputId);
+    const open   = document.getElementById(openId);
+    const closed = document.getElementById(closedId);
+    if (inp.type === 'password') {
+      inp.type = 'text'; open.style.display = 'block'; closed.style.display = 'none';
+    } else {
+      inp.type = 'password'; open.style.display = 'none'; closed.style.display = 'block';
+    }
+  }
+
+  // ── Token validation on load
+  async function validateToken() {
+    const params = new URLSearchParams(location.search);
+    resetEmail   = params.get('email') || '';
+    resetToken   = params.get('token') || '';
+
+    function showInvalid(msg) {
+      document.getElementById('stepLoading').style.display = 'none';
+      document.getElementById('stepInvalid').style.display = 'block';
+      if (msg) document.getElementById('invalidMsg').innerHTML = msg;
+    }
+
+    if (!resetEmail || !resetToken) {
+      showInvalid('Link de recuperação incompleto.<br>Solicite um novo link.');
+      return;
+    }
+
+    // Check localStorage first (fast path)
+    const localKey  = 'of_reset_' + btoa(resetEmail);
+    const localData = JSON.parse(localStorage.getItem(localKey) || 'null');
+
+    if (localData) {
+      if (Date.now() > localData.expiry) {
+        localStorage.removeItem(localKey);
+        showInvalid('Este link expirou.<br>Solicite um novo link.');
+        return;
+      }
+      if (localData.token !== resetToken) {
+        showInvalid('Link de recuperação inválido.<br>Solicite um novo link.');
+        return;
+      }
+    }
+
+    // Load perfis to cross-validate and get perfil for update
+    try {
+      const res = await fetch(
+        'https://raw.githubusercontent.com/OneFinanceBPO/Portal-do-Cliente/main/data/perfis.json?t=' + Date.now()
+      );
+      if (res.ok) allPerfis = (await res.json()).perfis || [];
+    } catch { /* use localStorage copy */ }
+
+    if (!allPerfis.length) {
+      allPerfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
+    }
+
+    perfilData = allPerfis.find(p => p.email === resetEmail);
+
+    if (!perfilData) {
+      // Email no longer exists in system, but if localStorage token is valid allow anyway
+      if (!localData || Date.now() > localData.expiry || localData.token !== resetToken) {
+        showInvalid('Usuário não encontrado.<br>Solicite um novo link.');
+        return;
+      }
+    } else {
+      // Validate against perfil token
+      const tokenMatch   = perfilData.resetToken === resetToken;
+      const notExpired   = perfilData.resetExpiry && Date.now() <= perfilData.resetExpiry;
+      const localOk      = localData && localData.token === resetToken && Date.now() <= localData.expiry;
+
+      if (!tokenMatch && !localOk) {
+        showInvalid('Link de recuperação inválido.<br>Solicite um novo link.');
+        return;
+      }
+      if (!notExpired && !localOk) {
+        showInvalid('Este link expirou.<br>Solicite um novo link.');
+        return;
+      }
+    }
+
+    // Token valid — show form
+    document.getElementById('stepLoading').style.display = 'none';
+    document.getElementById('stepForm').style.display    = 'block';
+    const shortEmail = resetEmail.length > 30
+      ? resetEmail.slice(0, 12) + '…' + resetEmail.slice(resetEmail.lastIndexOf('@'))
+      : resetEmail;
+    document.getElementById('emailLabel').textContent = 'Nova senha para ' + shortEmail;
+  }
+
+  async function handleNewPassword(e) {
+    e.preventDefault();
+
+    const novaSenhaEl    = document.getElementById('novaSenha');
+    const confirmarEl    = document.getElementById('confirmarSenha');
+    const senhaErr       = document.getElementById('senhaErr');
+    const confirmErr     = document.getElementById('confirmErr');
+    const saveBtn        = document.getElementById('saveBtn');
+
+    senhaErr.style.display  = 'none';
+    confirmErr.style.display = 'none';
+    novaSenhaEl.classList.remove('err');
+    confirmarEl.classList.remove('err');
+
+    const pwd  = novaSenhaEl.value;
+    const pwd2 = confirmarEl.value;
+
+    const len   = pwd.length >= 8;
+    const upper = /[A-Z]/.test(pwd);
+    const lower = /[a-z]/.test(pwd);
+    const num   = /[0-9]/.test(pwd);
+
+    if (!len || !upper || !lower || !num) {
+      senhaErr.style.display = 'block';
+      novaSenhaEl.classList.add('err');
+      return;
+    }
+
+    if (pwd !== pwd2) {
+      confirmErr.style.display = 'block';
+      confirmarEl.classList.add('err');
+      return;
+    }
+
+    saveBtn.disabled    = true;
+    saveBtn.textContent = 'Salvando…';
+
+    const hashed = await GH_SYNC.hashPassword(pwd);
+
+    if (perfilData) {
+      perfilData.senha        = hashed;
+      delete perfilData.resetToken;
+      delete perfilData.resetExpiry;
+
+      const result = await GH_SYNC.savePerfis(allPerfis);
+      if (!result.ok) {
+        TOAST.show('Erro ao salvar. Tente novamente.', 'error');
+        saveBtn.disabled    = false;
+        saveBtn.textContent = 'Salvar nova senha';
+        return;
+      }
+    } else {
+      // No perfil found — can't update GitHub without sync config
+      TOAST.show('Não foi possível atualizar a senha. Contate o administrador.', 'error');
+      saveBtn.disabled    = false;
+      saveBtn.textContent = 'Salvar nova senha';
+      return;
+    }
+
+    // Clear reset token from localStorage
+    localStorage.removeItem('of_reset_' + btoa(resetEmail));
+
+    document.getElementById('stepForm').style.display   = 'none';
+    document.getElementById('stepSuccess').style.display = 'block';
+
+    // Auto-redirect after 4 seconds
+    setTimeout(() => { window.location.href = 'index.html'; }, 4000);
+  }
+
+  // Run on load
+  document.addEventListener('DOMContentLoaded', validateToken);
+</script>
+</body>
+</html>

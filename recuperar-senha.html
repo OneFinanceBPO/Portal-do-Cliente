@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Finance — Recuperar Senha</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/sync.js"></script>
+<script src="js/toast.js"></script>
+<style>
+  .error-msg { font-size:12px; color:var(--red); margin-top:6px; display:none; }
+  .form-input.err { border-color:var(--red); }
+  .success-box { display:none; text-align:center; padding:8px 0; }
+  .success-icon { width:56px; height:56px; border-radius:50%; background:rgba(34,197,94,.12); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .success-icon svg { width:28px; height:28px; color:var(--green); }
+  .reset-link-box { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:11px; color:var(--text2); word-break:break-all; margin:12px 0; text-align:left; cursor:pointer; transition:border-color .2s; }
+  .reset-link-box:hover { border-color:var(--accent2); }
+  .reset-link-note { font-size:11px; color:var(--text3); text-align:center; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div class="login-page">
+  <!-- LEFT: BRANDING -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-logo"><img src="logo.png" alt="One Finance" style="width:60px;height:60px;object-fit:contain;"></div>
+      <h1>Portal do <span>Usuário</span></h1>
+      <p>Acesse os dados financeiros da sua empresa com segurança e em tempo real.</p>
+    </div>
+
+    <div class="login-feats">
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        Recuperação segura de senha
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        Verificação via e-mail cadastrado
+      </div>
+      <div class="login-feat">
+        <div class="feat-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        Link válido por 30 minutos
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM -->
+  <div class="login-right">
+    <div class="login-box">
+
+      <!-- STEP 1: E-mail form -->
+      <div id="stepEmail">
+        <h2>Recuperar senha</h2>
+        <p class="sub">Informe seu e-mail para receber o link de redefinição</p>
+
+        <form id="recoverForm" onsubmit="handleRecover(event)">
+          <div class="form-group">
+            <label class="form-lbl" for="email">E-mail cadastrado</label>
+            <div class="form-wrap">
+              <input class="form-input" type="email" id="email" placeholder="seu@email.com.br" autocomplete="email">
+              <span class="input-ico">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="error-msg" id="emailErr">Informe um e-mail válido.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-login" id="submitBtn">Enviar link de recuperação</button>
+        </form>
+      </div>
+
+      <!-- STEP 2: Success -->
+      <div class="success-box" id="stepSuccess">
+        <div class="success-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <h2 style="margin-bottom:8px;">Link gerado!</h2>
+        <p style="font-size:13px; color:var(--text2); margin-bottom:20px; line-height:1.6;">
+          Copie o link abaixo e envie para o usuário. O link expira em <strong style="color:var(--text);">30 minutos</strong>.
+        </p>
+
+        <div class="reset-link-box" id="resetLinkBox" onclick="copyLink()" title="Clique para copiar">
+          <span id="resetLinkText"></span>
+        </div>
+        <p class="reset-link-note" id="copyNote" style="color:var(--text3); margin-bottom:16px;">Clique no link acima para copiar</p>
+
+        <a href="index.html" class="btn btn-secondary" style="display:block; text-align:center; padding:10px; border-radius:8px; font-size:13px; font-weight:600; color:var(--text2); border:1px solid var(--border); cursor:pointer; transition:border-color .2s;"
+           onmouseover="this.style.borderColor='var(--accent2)'; this.style.color='var(--text)'"
+           onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text2)'"
+        >Voltar para o login</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer-login">
+  <span class="footer-dot" style="display:inline-block; width:5px; height:5px; background:var(--green); border-radius:50%; margin-right:6px;"></span>
+  One Finance BPO Financeiro &nbsp;·&nbsp; v2.0.0
+</div>
+
+<script>
+  let generatedLink = '';
+
+  function generateToken(length = 32) {
+    const arr = new Uint8Array(length);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function copyLink() {
+    if (!generatedLink) return;
+    navigator.clipboard.writeText(generatedLink).then(() => {
+      document.getElementById('copyNote').textContent = '✓ Link copiado para a área de transferência!';
+      document.getElementById('copyNote').style.color = 'var(--green)';
+    }).catch(() => {
+      document.getElementById('copyNote').textContent = 'Selecione e copie o link manualmente.';
+    });
+  }
+
+  async function handleRecover(e) {
+    e.preventDefault();
+
+    const emailEl  = document.getElementById('email');
+    const emailErr = document.getElementById('emailErr');
+    const btn      = document.getElementById('submitBtn');
+
+    emailErr.style.display = 'none';
+    emailEl.classList.remove('err');
+
+    const emailVal = emailEl.value.trim();
+    if (!emailVal || !/\S+@\S+\.\S+/.test(emailVal)) {
+      emailErr.textContent = 'Informe um e-mail válido.';
+      emailErr.style.display = 'block';
+      emailEl.classList.add('err');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando…';
+
+    // Load perfis from GitHub
+    let perfis = [];
+    try {
+      const res = await fetch(
+        'https://raw.githubusercontent.com/OneFinanceBPO/Portal-do-Cliente/main/data/perfis.json?t=' + Date.now()
+      );
+      if (res.ok) perfis = (await res.json()).perfis || [];
+    } catch { /* network error */ }
+
+    if (!perfis.length) {
+      perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
+    }
+
+    const perfil = perfis.find(p => p.email === emailVal);
+
+    if (!perfil) {
+      // Show same success message to avoid email enumeration
+      showSuccess(emailVal);
+      return;
+    }
+
+    // Generate reset token and expiry (30 min)
+    const token  = generateToken();
+    const expiry = Date.now() + 30 * 60 * 1000;
+
+    perfil.resetToken  = token;
+    perfil.resetExpiry = expiry;
+
+    // Save updated perfis
+    const result = await GH_SYNC.savePerfis(perfis);
+    if (!result.ok && result.noToken && !GH_SYNC.getWorkerUrl()) {
+      // No sync config — store token locally as fallback
+      localStorage.setItem('of_reset_' + btoa(emailVal), JSON.stringify({ token, expiry }));
+    }
+
+    // Store locally as well for fast validation
+    localStorage.setItem('of_reset_' + btoa(emailVal), JSON.stringify({ token, expiry }));
+
+    showSuccess(emailVal, token);
+  }
+
+  function showSuccess(email, token) {
+    if (token) {
+      const baseUrl  = location.href.replace('recuperar-senha.html', '');
+      generatedLink  = `${baseUrl}nova-senha.html?email=${encodeURIComponent(email)}&token=${token}`;
+      document.getElementById('resetLinkText').textContent = generatedLink;
+    } else {
+      document.getElementById('resetLinkBox').style.display = 'none';
+      document.getElementById('copyNote').style.display = 'none';
+    }
+    document.getElementById('stepEmail').style.display   = 'none';
+    document.getElementById('stepSuccess').style.display = 'block';
+  }
+</script>
+</body>
+</html>
