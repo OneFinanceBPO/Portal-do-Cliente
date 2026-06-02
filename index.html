@@ -193,19 +193,25 @@
     const senhaVal  = senha.value;
     if (btn) btn.disabled = true;
 
-    // Admin bypass (sem cadastro em perfis)
-    const isAdmin = emailVal.includes('adm') || emailVal.includes('onefinance');
+    // Admin bypass — apenas e-mail específico do administrador
+    const ADMIN_EMAILS = ['bruce@onefinance.com.br'];
+    const isAdmin = ADMIN_EMAILS.includes(emailVal);
 
     // Busca perfis do GitHub (fonte de verdade)
     let perfis = [];
+    let perfisCarregados = false;
     try {
       const res = await fetch(
         'https://raw.githubusercontent.com/OneFinanceBPO/Portal-do-Cliente/main/data/perfis.json?t=' + Date.now()
       );
-      if (res.ok) perfis = (await res.json()).perfis || [];
+      if (res.ok) {
+        perfis = (await res.json()).perfis || [];
+        perfisCarregados = true;
+      }
     } catch { /* sem conexão — tenta localStorage como fallback */ }
 
-    if (!perfis.length) {
+    // Fallback para localStorage SOMENTE se houve erro de rede (não se perfis.json está vazio)
+    if (!perfisCarregados) {
       perfis = JSON.parse(localStorage.getItem('of_perfis') || '[]');
     }
 
