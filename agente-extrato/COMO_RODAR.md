@@ -18,10 +18,21 @@
    - Acesse Dashboard → SQL Editor
    - Cole e execute o bloco SQL da **Tarefa 5** do plano de ação
 
-4. Teste com um único cliente:
+4. **Faça o setup de sessão (necessário por causa do 2FA):**
    ```bash
-   python main.py --teste --debug
+   python3 setup_sessao.py
    ```
+   O navegador vai abrir. Faça login normalmente — e-mail, senha e código do Authenticator.
+   Após entrar no hub, pressione ENTER no terminal. A sessão será salva em `session.json`.
+
+5. Teste com um único cliente:
+   ```bash
+   python main.py --teste --debug --sem-email
+   ```
+
+> **Quando refazer o setup de sessão?**
+> Quando o agente logar o erro: *"O Conta Azul está pedindo autenticação em duas etapas"*.
+> Basta rodar `python3 setup_sessao.py` novamente.
 
 ---
 

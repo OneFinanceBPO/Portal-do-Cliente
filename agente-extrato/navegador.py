@@ -12,51 +12,105 @@ log = logging.getLogger(__name__)
 CA_EMAIL = os.getenv("CA_EMAIL")
 CA_SENHA = os.getenv("CA_SENHA")
 DOWNLOADS_DIR = os.path.join(os.getcwd(), "downloads")
+SESSION_FILE  = "session.json"
+
+
+def _sessao_salva_existe():
+    return os.path.exists(SESSION_FILE) and os.path.getsize(SESSION_FILE) > 0
 
 
 def iniciar_navegador(headless=True):
-    """Inicia o Playwright e abre o Chromium. Retorna (playwright, browser, page)."""
+    """
+    Inicia o Playwright e abre o Chromium.
+    Se session.json existir, carrega a sessão salva (sem precisar de login/2FA).
+    Retorna (playwright, browser, page).
+    """
     os.makedirs(DOWNLOADS_DIR, exist_ok=True)
     playwright = sync_playwright().start()
     browser = playwright.chromium.launch(headless=headless)
-    context = browser.new_context(
-        accept_downloads=True,
-        downloads_path=DOWNLOADS_DIR,
-    )
+
+    kwargs = dict(accept_downloads=True, downloads_path=DOWNLOADS_DIR)
+    if _sessao_salva_existe():
+        kwargs["storage_state"] = SESSION_FILE
+        log.info("Sessão salva encontrada — carregando sem necessidade de login")
+    else:
+        log.info("Nenhuma sessão salva — será necessário fazer login")
+
+    context = browser.new_context(**kwargs)
     page = context.new_page()
     page.set_default_timeout(30_000)
     return playwright, browser, page
 
 
 def fazer_login(page):
-    """Acessa o Conta Azul Mais e realiza o login."""
+    """
+    Acessa o Conta Azul Mais.
+    Se a sessão salva ainda for válida, entra direto no hub.
+    Caso contrário, faz login com e-mail e senha.
+    Se o 2FA for solicitado, o agente para e orienta a rodar setup_sessao.py.
+    """
     log.info("Acessando Conta Azul Mais...")
     page.goto("https://app.contaazul.com/")
     page.wait_for_load_state("networkidle")
 
-    # Preenche e-mail
+    # Verifica se já está autenticado (sessão válida)
+    if "/hub" in page.url or "/parceiro" in page.url or "/dashboard" in page.url:
+        log.info(f"Sessão válida — já no hub às {datetime.now().strftime('%H:%M')}")
+        return
+
+    # Verifica se o 2FA está sendo pedido antes mesmo do login
+    if _pagina_pede_2fa(page):
+        raise Exception(
+            "O Conta Azul está pedindo autenticação em duas etapas.\n"
+            "Execute: python3 setup_sessao.py\n"
+            "Faça login manualmente com o código do Authenticator e a sessão será salva."
+        )
+
+    # Preenche e-mail e senha
     page.wait_for_selector('input[type="email"], input[name="email"], input[placeholder*="mail"]')
     page.fill('input[type="email"], input[name="email"], input[placeholder*="mail"]', CA_EMAIL)
-
-    # Preenche senha
     page.fill('input[type="password"]', CA_SENHA)
-
-    # Clica em Entrar
     page.click('button[type="submit"], button:has-text("Entrar"), input[type="submit"]')
 
-    # Aguarda redirecionamento para o hub
+    # Aguarda resultado: hub ou 2FA
     try:
-        page.wait_for_url(lambda url: "/hub" in url or "/parceiro" in url or "/dashboard" in url, timeout=20_000)
+        page.wait_for_url(
+            lambda url: "/hub" in url or "/parceiro" in url or "/dashboard" in url or "otp" in url or "auth" in url,
+            timeout=20_000,
+        )
     except PlaywrightTimeout:
-        # Verifica se apareceu mensagem de erro
-        if page.locator('text="Usuário ou senha inválidos"').count() > 0 or \
-           page.locator('text="Credenciais inválidas"').count() > 0:
-            raise Exception("Login falhou: credenciais inválidas. Verifique CA_EMAIL e CA_SENHA no .env")
-        # Se não tem erro explícito mas URL não mudou, lança exceção genérica
-        if "contaazul.com" in page.url and "/hub" not in page.url:
-            raise Exception(f"Login falhou: URL inesperada após login — {page.url}")
+        pass
+
+    # Verifica se caiu no 2FA após submit
+    if _pagina_pede_2fa(page):
+        raise Exception(
+            "O Conta Azul solicitou o código do Authenticator.\n"
+            "Execute: python3 setup_sessao.py\n"
+            "Faça login manualmente (incluindo o 2FA) e a sessão será salva para uso automático."
+        )
+
+    # Verifica erro de credenciais
+    if page.locator('text="Usuário ou senha inválidos", text="Credenciais inválidas"').count() > 0:
+        raise Exception("Login falhou: credenciais inválidas. Verifique CA_EMAIL e CA_SENHA no .env")
 
     log.info(f"Login realizado com sucesso às {datetime.now().strftime('%H:%M')}")
+
+
+def _pagina_pede_2fa(page):
+    """Detecta se a página atual está pedindo código de autenticação."""
+    indicadores = [
+        'text="Autenticação em duas etapas"',
+        'text="Two-factor"',
+        'text="Código de verificação"',
+        'text="Authenticator"',
+        'input[placeholder*="código"]',
+        'input[placeholder*="code"]',
+        'input[autocomplete="one-time-code"]',
+    ]
+    for seletor in indicadores:
+        if page.locator(seletor).count() > 0:
+            return True
+    return False
 
 
 def listar_clientes_do_hub(page):
