@@ -1,1 +1,17 @@
-{"perfis":[]}
+{
+  "perfis": [
+    {
+      "id": 1780489413776,
+      "nome": "Gabryel",
+      "sobrenome": "Serafim",
+      "email": "gabryel@onefinance.com.br",
+      "senha": "83915e3c8fee1fbac8bffd358ada7ff7ec5fd1aabb5bf71a0ce239f9704783d5",
+      "tipo": "adm",
+      "acesso": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}
