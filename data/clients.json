@@ -1,7 +1,22 @@
 {
   "clients": [
-    { "id": 1, "name": "Limpar", "segment": "Serviços", "cnpj": "—" },
-    { "id": 2, "name": "One Finance", "segment": "Serviços", "cnpj": "—" },
-    { "id": 3, "name": "Equipe", "segment": "Serviços", "cnpj": "—" }
+    {
+      "id": 1,
+      "name": "Limpar",
+      "segment": "Serviços",
+      "cnpj": "51.448.944/0001-67"
+    },
+    {
+      "id": 2,
+      "name": "One Finance",
+      "segment": "Serviços",
+      "cnpj": "—"
+    },
+    {
+      "id": 3,
+      "name": "Equipe",
+      "segment": "Serviços",
+      "cnpj": "—"
+    }
   ]
 }
