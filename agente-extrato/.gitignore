@@ -1,0 +1,6 @@
+.env
+logs/
+downloads/
+__pycache__/
+*.pyc
+.playwright/
