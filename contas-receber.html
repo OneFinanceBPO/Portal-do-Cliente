@@ -6,6 +6,7 @@
 <title>One Finance — Contas a Receber</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="js/auth.js"></script>
+<script src="js/api.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/session-timeout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -231,39 +232,16 @@ Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
 Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
-const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
-const _isLimpar = _client.id === 1;
+const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0,"cnpj":""}');
+const meses   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const recVal = _isLimpar ? [482725,603943,717424,715659,274065,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
-const recQtd = _isLimpar ? [36,49,62,56,35,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
-
-if (!_isLimpar) {
-  document.getElementById('kpiVencida').textContent  = 'R$ 0';
-  document.getElementById('kpiAVencer').textContent  = 'R$ 0';
-  document.getElementById('kpiRecebida').textContent = 'R$ 0';
-  document.getElementById('kpiTotal').textContent    = 'R$ 0';
-}
-
-// KPIs por mês
-const kpisRecMes = {
-  all: { vencidas:131282, aVencer:136540, recebidas:2793816, total:3061638 },
-  1:   { vencidas:0,      aVencer:0,      recebidas:482725,  total:482725  },
-  2:   { vencidas:0,      aVencer:0,      recebidas:603943,  total:603943  },
-  3:   { vencidas:0,      aVencer:0,      recebidas:717424,  total:717424  },
-  4:   { vencidas:44010,  aVencer:0,      recebidas:715659,  total:759669  },
-  5:   { vencidas:87272,  aVencer:136540, recebidas:274065,  total:497876  },
-};
-
-// Donut % por mês [A Vencer, Recebidos, Vencidos, Perda]
-const donutMes = {
-  all: [4.5, 91.2, 4.3, 0],
-  1:   [0, 100.0, 0, 0],
-  2:   [0, 100.0, 0, 0],
-  3:   [0, 100.0, 0, 0],
-  4:   [0, 94.2, 5.8, 0],
-  5:   [27.4, 55.0, 17.5, 0.1],
-};
+// Dados dinâmicos (preenchidos pela API)
+let recVal = Array(12).fill(0);
+let recQtd = Array(12).fill(0);
+let kpisRecMes = { all: { vencidas:0, aVencer:0, recebidas:0, total:0 } };
+let donutMes   = { all: [25,25,25,25] };
+let aVencerBar = Array(12).fill(0);
+let vencidosBar= Array(12).fill(0);
 
 let mode = 'val';
 let chartRecebidos, chartDonut, chartAberto;
@@ -275,77 +253,121 @@ function setToggle(m) {
   updateData();
 }
 
-function updateData() {
-  const ano = document.getElementById('selAno').value;
-  if (ano !== '2026') {
-    if (_isLimpar) {
-      document.getElementById('kpiVencida').textContent  = 'R$ 0';
-      document.getElementById('kpiAVencer').textContent  = 'R$ 0';
-      document.getElementById('kpiRecebida').textContent = 'R$ 0';
-      document.getElementById('kpiTotal').textContent    = 'R$ 0';
-    }
-    chartRecebidos.data.datasets[0].data = recVal.map(() => 0);
-    chartRecebidos.data.datasets[0].backgroundColor = recVal.map(() => 'rgba(59,130,246,0.25)');
-    chartRecebidos.update();
-    chartDonut.data.datasets[0].data = [25, 25, 25, 25];
-    chartDonut.update();
-    chartAberto.data.datasets[0].backgroundColor = meses.map(() => 'rgba(59,130,246,0.15)');
-    chartAberto.data.datasets[1].backgroundColor = meses.map(() => 'rgba(244,63,94,0.15)');
-    chartAberto.update();
-    return;
-  }
-  const sel     = MES_FILTER.getSelected(); // null = Todos, [1..12] = específicos
-  const isTodos = !sel;
-  const selIdxs = sel ? sel.map(m => m - 1) : null;
+// ── Popula dados da resposta da API ──
+function popularDadosRec(api) {
+  recVal = Array(12).fill(0);
+  recQtd = Array(12).fill(0);
+  aVencerBar  = Array(12).fill(0);
+  vencidosBar = Array(12).fill(0);
+  kpisRecMes  = {};
+  donutMes    = {};
 
-  // Bar chart
+  let allRec = 0, allVenc = 0, allAVencer = 0, allQtd = 0;
+
+  // Pendentes por mês para "A Vencer" e "Vencidos"
+  const hoje = new Date().toISOString().slice(0,10);
+  for (const p of (api.pendentes || [])) {
+    if (p.tipo !== 'rec') continue; // só receitas pendentes (entradas)
+    // Determina mês do vencimento
+    const [d,m,a] = p.venc.split('/');
+    const mes = parseInt(m, 10);
+    if (a == api.ano) {
+      if (p.status === 'atrasado') { vencidosBar[mes-1] += p.val; allVenc += p.val; }
+      else                         { aVencerBar[mes-1]  += p.val; allAVencer += p.val; }
+    }
+  }
+
+  for (const [mesStr, d] of Object.entries(api.meses || {})) {
+    const mes = parseInt(mesStr, 10);
+    const idx = mes - 1;
+    recVal[idx] = d.recTotal;
+    recQtd[idx] = d.qtdRec;
+    allRec += d.recTotal;
+    allQtd += d.qtdRec;
+
+    const venc     = vencidosBar[idx];
+    const aVencer  = aVencerBar[idx];
+    const recebida = d.recTotal;
+    const total    = recebida + venc + aVencer;
+    kpisRecMes[mes] = { vencidas: venc, aVencer, recebidas: recebida, total };
+
+    const t = total || 1;
+    donutMes[mes] = [
+      +(aVencer/t*100).toFixed(1),
+      +(recebida/t*100).toFixed(1),
+      +(venc/t*100).toFixed(1),
+      0,
+    ];
+  }
+
+  const total = allRec + allVenc + allAVencer;
+  kpisRecMes['all'] = { vencidas: allVenc, aVencer: allAVencer, recebidas: allRec, total };
+  const t = total || 1;
+  donutMes['all'] = [
+    +(allAVencer/t*100).toFixed(1),
+    +(allRec/t*100).toFixed(1),
+    +(allVenc/t*100).toFixed(1),
+    0,
+  ];
+}
+
+function updateData() {
+  const temDados = recVal.some(v => v > 0);
+  const sel      = MES_FILTER.getSelected();
+  const isTodos  = !sel;
+  const selIdxs  = sel ? sel.map(m => m - 1) : null;
+
+  // Bar chart recebimentos
   const data = mode === 'val' ? recVal : recQtd;
   chartRecebidos.data.datasets[0].data = data;
-  chartRecebidos.data.datasets[0].backgroundColor = data.map((_, i) => {
-    if (isTodos) return i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)';
+  chartRecebidos.data.datasets[0].backgroundColor = data.map((v, i) => {
+    if (!temDados) return 'rgba(59,130,246,0.15)';
+    if (isTodos) return v > 0 ? '#2563eb' : 'rgba(59,130,246,0.25)';
     return selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)';
   });
   chartRecebidos.options.plugins.tooltip.callbacks.label = ctx =>
-    (mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos');
+    mode === 'val' ? 'R$ ' + ctx.raw.toLocaleString('pt-BR') : ctx.raw + ' lançamentos';
   chartRecebidos.update();
 
   // KPIs
-  if (_isLimpar) {
-    const k = isTodos
-      ? (kpisRecMes['all'] || { vencidas:0, aVencer:0, recebidas:0, total:0 })
-      : sel.reduce((acc, m) => {
-          const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
-          return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
-                   recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
-        }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
-    document.getElementById('kpiVencida').textContent  = 'R$ ' + k.vencidas.toLocaleString('pt-BR');
-    document.getElementById('kpiAVencer').textContent  = 'R$ ' + k.aVencer.toLocaleString('pt-BR');
-    document.getElementById('kpiRecebida').textContent = 'R$ ' + k.recebidas.toLocaleString('pt-BR');
-    document.getElementById('kpiTotal').textContent    = 'R$ ' + k.total.toLocaleString('pt-BR');
-  }
+  const k = isTodos
+    ? (kpisRecMes['all'] || { vencidas:0, aVencer:0, recebidas:0, total:0 })
+    : (sel || []).reduce((acc, m) => {
+        const km = kpisRecMes[m] || {};
+        return { vencidas:  (acc.vencidas  || 0) + (km.vencidas  || 0),
+                 aVencer:   (acc.aVencer   || 0) + (km.aVencer   || 0),
+                 recebidas: (acc.recebidas || 0) + (km.recebidas || 0),
+                 total:     (acc.total     || 0) + (km.total     || 0) };
+      }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
+  document.getElementById('kpiVencida').textContent  = 'R$ ' + (k.vencidas  || 0).toLocaleString('pt-BR');
+  document.getElementById('kpiAVencer').textContent  = 'R$ ' + (k.aVencer   || 0).toLocaleString('pt-BR');
+  document.getElementById('kpiRecebida').textContent = 'R$ ' + (k.recebidas || 0).toLocaleString('pt-BR');
+  document.getElementById('kpiTotal').textContent    = 'R$ ' + (k.total     || 0).toLocaleString('pt-BR');
 
   // Donut
   let dd;
-  if (!_isLimpar) { dd = [25,25,25,25]; }
-  else if (isTodos) { dd = donutMes['all']; }
+  if (!temDados)       { dd = [25,25,25,25]; }
+  else if (isTodos)    { dd = donutMes['all'] || [25,25,25,25]; }
   else if (sel.length === 1) { dd = donutMes[sel[0]] || [0,0,0,0]; }
   else {
-    const k = sel.reduce((acc, m) => {
-      const km = kpisRecMes[m] || { vencidas:0, aVencer:0, recebidas:0, total:0 };
-      return { vencidas: acc.vencidas+km.vencidas, aVencer: acc.aVencer+km.aVencer,
-               recebidas: acc.recebidas+km.recebidas, total: acc.total+km.total };
-    }, { vencidas:0, aVencer:0, recebidas:0, total:0 });
-    const t = k.total || 1;
-    dd = [+(k.aVencer/t*100).toFixed(1), +(k.recebidas/t*100).toFixed(1), +(k.vencidas/t*100).toFixed(1), 0];
+    const kt = sel.reduce((acc, m) => {
+      const km = kpisRecMes[m] || {};
+      return { vencidas:(acc.vencidas||0)+(km.vencidas||0), aVencer:(acc.aVencer||0)+(km.aVencer||0),
+               recebidas:(acc.recebidas||0)+(km.recebidas||0), total:(acc.total||0)+(km.total||0) };
+    }, {});
+    const tot = kt.total || 1;
+    dd = [+(kt.aVencer/tot*100).toFixed(1), +(kt.recebidas/tot*100).toFixed(1), +(kt.vencidas/tot*100).toFixed(1), 0];
   }
   chartDonut.data.datasets[0].data = dd;
   chartDonut.update();
 
-  // Em Aberto
+  // Gráfico Em Aberto (A Vencer + Vencidos por mês)
+  chartAberto.data.datasets[0].data = aVencerBar;
+  chartAberto.data.datasets[1].data = vencidosBar;
   chartAberto.data.datasets[0].backgroundColor = meses.map((_, i) =>
-    isTodos || selIdxs.includes(i) ? '#2563eb' : 'rgba(59,130,246,0.15)');
+    isTodos || (selIdxs && selIdxs.includes(i)) ? '#2563eb' : 'rgba(59,130,246,0.15)');
   chartAberto.data.datasets[1].backgroundColor = meses.map((_, i) =>
-    isTodos || selIdxs.includes(i) ? '#f43f5e' : 'rgba(244,63,94,0.15)');
+    isTodos || (selIdxs && selIdxs.includes(i)) ? '#f43f5e' : 'rgba(244,63,94,0.15)');
   chartAberto.update();
 }
 
@@ -354,7 +376,7 @@ function initCharts() {
     type: 'bar',
     data: {
       labels: meses,
-      datasets: [{ data: recVal, backgroundColor: recVal.map((_,i) => i < 5 ? '#2563eb' : 'rgba(59,130,246,0.25)'), borderRadius: 5, borderSkipped: false }]
+      datasets: [{ data: recVal, backgroundColor: Array(12).fill('rgba(59,130,246,0.25)'), borderRadius: 5, borderSkipped: false }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -370,7 +392,7 @@ function initCharts() {
     type: 'doughnut',
     data: {
       labels: ['A Vencer','Recebidos','Vencidos','Perda'],
-      datasets: [{ data: _isLimpar ? [27.4,55.0,17.5,0.1] : [25,25,25,25], backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'], borderWidth:0, hoverOffset:6 }]
+      datasets: [{ data: [25,25,25,25], backgroundColor: ['#3b82f6','#22c55e','#f43f5e','#6b7280'], borderWidth:0, hoverOffset:6 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout:'68%',
@@ -386,8 +408,8 @@ function initCharts() {
     data: {
       labels: meses,
       datasets: [
-        { label:'A Vencer', data: _isLimpar ? [0,0,0,0,136540,567409,567409,567409,567409,563520,563520,563520] : [0,0,0,0,0,0,0,0,0,0,0,0], backgroundColor:'#2563eb', borderRadius:4, borderSkipped:false },
-        { label:'Vencidos', data: _isLimpar ? [0,0,0,44010,87272,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0], backgroundColor:'#f43f5e', borderRadius:4, borderSkipped:false },
+        { label:'A Vencer', data: Array(12).fill(0), backgroundColor:'#2563eb', borderRadius:4, borderSkipped:false },
+        { label:'Vencidos', data: Array(12).fill(0), backgroundColor:'#f43f5e', borderRadius:4, borderSkipped:false },
       ]
     },
     options: {
@@ -399,6 +421,37 @@ function initCharts() {
       }
     }
   });
+}
+
+function mostrarLoading(sim) {
+  let el = document.getElementById('loadingOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:15px;color:#fff;gap:12px;';
+    el.innerHTML = '<svg style="animation:spin 1s linear infinite;width:22px;height:22px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Carregando dados...';
+    document.body.appendChild(el);
+    const s = document.createElement('style');
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+  el.style.display = sim ? 'flex' : 'none';
+}
+
+async function carregarDados(ano) {
+  const cnpj = _client.cnpj;
+  if (!cnpj || cnpj === '—') return;
+  mostrarLoading(true);
+  try {
+    const api = await OF_API.getFinanceiro(cnpj, ano);
+    popularDadosRec(api);
+    updateData();
+  } catch(e) {
+    console.error(e);
+    if (typeof TOAST !== 'undefined') TOAST.show('Erro ao carregar dados: ' + e.message, 'error');
+  } finally {
+    mostrarLoading(false);
+  }
 }
 
 function toggleFull() {
@@ -414,7 +467,7 @@ function updateClock() {
 updateClock(); setInterval(updateClock, 30000);
 initCharts();
 MES_FILTER.init(null, updateData);
-updateData();
+carregarDados(new Date().getFullYear());
 </script>
 
 <!-- SESSION TIMEOUT WARNING -->

@@ -26,9 +26,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 from navegador import iniciar_navegador, fazer_login, listar_clientes_do_hub, entrar_no_cliente, voltar_para_hub
-from validador import validar_cliente_completo
 from exportador import extrair_extrato_cliente
-from banco import conectar, listar_empresas_do_portal, salvar_extrato, iniciar_log_execucao, registrar_log_cliente, finalizar_log_execucao
+from banco import conectar, listar_empresas_do_portal, verificar_empresa_no_portal, salvar_extrato, iniciar_log_execucao, registrar_log_cliente, finalizar_log_execucao
 from notificador import enviar_relatorio
 
 
@@ -38,10 +37,8 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
     log.info(f"Agente iniciado: {inicio.strftime('%H:%M:%S')}")
     log.info("─" * 45)
 
-    supabase = conectar()
-    empresas_portal = listar_empresas_do_portal(supabase)
-
-    playwright, browser, page = iniciar_navegador(headless=not debug)
+    conn = conectar()
+    empresas_portal = listar_empresas_do_portal(conn)
 
     resultado = {
         "total_hub": 0,
@@ -54,12 +51,18 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
     }
 
     execucao_id = None
+    playwright = None
+    browser = None
 
     try:
+        log.info("Iniciando navegador...")
+        playwright, browser, page = iniciar_navegador(headless=not debug)
+        log.info("Navegador iniciado com sucesso")
         fazer_login(page)
-        clientes_hub = listar_clientes_do_hub(page)
+        # Passa os CNPJs do portal → busca diretamente por cada cliente, sem paginar tudo
+        clientes_hub = listar_clientes_do_hub(page, cnpjs_portal=empresas_portal)
 
-        # Aplica filtro de cliente específico (--cliente)
+        # Aplica filtro de cliente específico (--cliente) por nome, sobre o resultado
         if filtro_cliente:
             clientes_hub = [c for c in clientes_hub if filtro_cliente.upper() in c["nome"].upper()]
             log.info(f"Filtro ativo: rodando apenas clientes que contenham '{filtro_cliente}'")
@@ -70,7 +73,7 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
             log.info("Modo teste: processando apenas 1 cliente")
 
         resultado["total_hub"] = len(clientes_hub)
-        execucao_id = iniciar_log_execucao(supabase, len(clientes_hub), len(empresas_portal))
+        execucao_id = iniciar_log_execucao(conn, len(clientes_hub), len(empresas_portal))
 
         log.info(f"Hub: {len(clientes_hub)} clientes com CA Pro Full")
         log.info("─" * 45)
@@ -84,40 +87,44 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
             if page_ca is None:
                 motivo = "ERRO: não foi possível entrar no CA Pro"
                 log.info(motivo)
-                registrar_log_cliente(supabase, execucao_id, nome, cnpj_hub, "erro", motivo, 0)
+                registrar_log_cliente(conn, execucao_id, nome, cnpj_hub, "erro", motivo, 0)
                 resultado["erros"] += 1
                 resultado["detalhes"].append({"nome": nome, "cnpj": cnpj_hub, "status": "erro", "motivo": motivo, "registros": 0})
                 continue
 
-            validacao = validar_cliente_completo(page_ca, supabase, nome, cnpj_hub)
-
-            if not validacao["valido"]:
-                log.info(validacao["motivo"])
-                registrar_log_cliente(supabase, execucao_id, nome, cnpj_hub, "pulado", validacao["motivo"], 0)
+            # Condições 1, 2 e 3 já garantidas pela nova busca por CNPJ do portal:
+            # - Condição 1 (CA Pro): verificado em listar_clientes_do_hub
+            # - Condição 2 (identidade): buscamos por CNPJ exato do portal
+            # - Condição 3 (cadastro): só processamos CNPJs vindos do portal
+            resultado_portal = verificar_empresa_no_portal(conn, cnpj_hub)
+            if not resultado_portal["encontrado"] or not resultado_portal["ativo"]:
+                motivo = f"PULADO: CNPJ {cnpj_hub} não ativo no portal"
+                log.info(motivo)
+                registrar_log_cliente(conn, execucao_id, nome, cnpj_hub, "pulado", motivo, 0)
                 resultado["pulados"] += 1
-                resultado["detalhes"].append({"nome": nome, "cnpj": cnpj_hub, "status": "pulado", "motivo": validacao["motivo"], "registros": 0})
+                resultado["detalhes"].append({"nome": nome, "cnpj": cnpj_hub, "status": "pulado", "motivo": motivo, "registros": 0})
                 voltar_para_hub(page_ca, page)
                 continue
 
-            log.info("✓ Identidade confirmada | ✓ Cadastrado no portal")
-            cnpj_confirmado = validacao["cnpj_confirmado"]
-            empresa_id = validacao["empresa_id"]
-            nome_confirmado = validacao["nome_confirmado"]
+            log.info("✓ CA Pro ativo | ✓ CNPJ confirmado | ✓ Cadastrado no portal")
+            cnpj_confirmado = cnpj_hub
+            empresa_id = resultado_portal["empresa_id"]
+            nome_confirmado = nome
 
             df = extrair_extrato_cliente(page_ca, nome_confirmado, cnpj_confirmado, empresa_id)
 
             if df is None:
                 motivo = "ERRO: falha na extração do extrato"
                 log.info(motivo)
-                registrar_log_cliente(supabase, execucao_id, nome, cnpj_confirmado, "erro", motivo, 0)
+                registrar_log_cliente(conn, execucao_id, nome, cnpj_confirmado, "erro", motivo, 0)
                 resultado["erros"] += 1
                 resultado["detalhes"].append({"nome": nome, "cnpj": cnpj_confirmado, "status": "erro", "motivo": motivo, "registros": 0})
                 voltar_para_hub(page_ca, page)
                 continue
 
-            registros_salvos = salvar_extrato(supabase, df)
+            registros_salvos = salvar_extrato(conn, df)
             log.info(f"✓ {registros_salvos} registros salvos")
-            registrar_log_cliente(supabase, execucao_id, nome, cnpj_confirmado, "ok", "OK", registros_salvos)
+            registrar_log_cliente(conn, execucao_id, nome, cnpj_confirmado, "ok", "OK", registros_salvos)
             resultado["ok"] += 1
             resultado["detalhes"].append({"nome": nome, "cnpj": cnpj_confirmado, "status": "ok", "motivo": "OK", "registros": registros_salvos})
 
@@ -136,7 +143,7 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
 
         if execucao_id:
             status_final = "concluido_com_erros" if resultado["erros"] > 0 else "concluido"
-            finalizar_log_execucao(supabase, execucao_id, resultado["ok"], resultado["erros"], resultado["pulados"], status_final)
+            finalizar_log_execucao(conn, execucao_id, resultado["ok"], resultado["erros"], resultado["pulados"], status_final)
 
         log.info("─" * 45)
         log.info(f"Concluído: {fim.strftime('%H:%M:%S')} | OK: {resultado['ok']} | Pulados: {resultado['pulados']} | Erros: {resultado['erros']}")
@@ -145,8 +152,10 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
         if not sem_email:
             enviar_relatorio(resultado)
 
-        browser.close()
-        playwright.stop()
+        if browser:
+            browser.close()
+        if playwright:
+            playwright.stop()
 
 
 if __name__ == "__main__":

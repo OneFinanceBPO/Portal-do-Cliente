@@ -6,6 +6,7 @@
 <title>One Finance — Contas a Pagar</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="js/auth.js"></script>
+<script src="js/api.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/session-timeout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -79,7 +80,7 @@
     <!-- FILTERS + TOGGLE -->
     <div class="filter-row">
       <span class="filter-lbl">Ano</span>
-      <select class="filter-sel" id="selAno" onchange="updateMes()"><option>2026</option><option>2025</option><option>2024</option></select>
+      <select class="filter-sel" id="selAno" onchange="carregarDados(this.value)"><option>2026</option><option>2025</option><option>2024</option></select>
       <span class="filter-lbl">Mês</span>
       <div class="mes-wrap" id="mesWrap">
         <button class="mes-btn" id="mesBtn" type="button">
@@ -183,15 +184,9 @@ Chart.defaults.borderColor = 'rgba(59,130,246,0.1)';
 Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11;
 
-const _client = JSON.parse(localStorage.getItem('currentClient') || '{"id":0}');
-const _isLimpar = _client.id === 1;
-
-if (!_isLimpar) {
-  document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
-}
-
 const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 let mode = 'val';
+let temDados = false;
 
 function setToggle(m) {
   mode = m;
@@ -199,86 +194,17 @@ function setToggle(m) {
   document.getElementById('togQtd').classList.toggle('on', m==='qtd');
 }
 
-// KPIs por mês
-const kpisMes = {
-  all: { pagos:2694113, aPagar:427899, atrasadas:17060, total:3139072 },
-  1:   { pagos:473639,  aPagar:0,      atrasadas:0,     total:473639  },
-  2:   { pagos:604692,  aPagar:0,      atrasadas:0,     total:604692  },
-  3:   { pagos:723026,  aPagar:0,      atrasadas:0,     total:723026  },
-  4:   { pagos:658674,  aPagar:0,      atrasadas:10000, total:668674  },
-  5:   { pagos:234082,  aPagar:427899, atrasadas:7060,  total:669041  },
-};
+// Dados dinâmicos — preenchidos após chamada à API
+let kpisMes   = {};
+let catsMes   = {};
+let contasMes = {};
+let pagosBar  = new Array(12).fill(0);
 
-// Categorias por mês
-const catsMes = {
-  all: {
-    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','Vale-Transporte','ASSIDUIDADE','Simples Nacional','FGTS','Ações Trabalhistas','Pró-labore'],
-    data:   [664861,565604,284915,220000,105779,86355,85363,78847,67455,64355]
-  },
-  1: {
-    labels: ['Prest. Serv. PJ','Salários','Vale-Refeição','Simples Nacional','Vale-Transporte','ASSIDUIDADE','FGTS','Honorários','Vale-Alimentação','Férias'],
-    data:   [170118,97339,40449,34362,31871,17100,11779,9000,8970,7950]
-  },
-  2: {
-    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Vale-Transporte','Retenções DARF','Rescisões','FGTS','Pró-labore','ASSIDUIDADE'],
-    data:   [126785,122775,70000,41307,36692,19832,18278,15497,15300,14505]
-  },
-  3: {
-    labels: ['Salários','Prest. Serv. PJ','Empréstimos Bancos','Vale-Refeição','Ações Trabalhistas','Retenções DARF','Vale-Transporte','ASSIDUIDADE','FGTS','Pró-labore'],
-    data:   [133281,131578,120000,61355,42127,39687,19739,18825,16352,16000]
-  },
-  4: {
-    labels: ['Salários','Prest. Serv. PJ','Vale-Refeição','Empréstimos Bancos','INSS sobre Salários','Simples Nacional','Retenções DARF','ASSIDUIDADE','FGTS','Vale-Transporte'],
-    data:   [168433,106530,61404,30000,27571,23755,21800,17895,17466,16290]
-  },
-  5: {
-    labels: ['Salários','Remuneração Autônomos','Vale-Refeição','Retenções DARF','Prest. Serv. PJ','Simples Nacional','ASSIDUIDADE','FGTS','Honorários','Pró-labore'],
-    data:   [139023,118700,80400,40000,34603,23853,18030,17754,17676,16037]
-  },
-};
-
-// Contas pendentes por mês
-const contasMes = {
-  all: [
-    {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',         venc:'29/05/2026', val:40103,  status:'vencer'},
-    {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',        venc:'25/05/2026', val:40000,  status:'vencer'},
-    {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',         venc:'15/05/2026', val:35000,  status:'vencer'},
-    {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos', venc:'29/05/2026', val:30000,  status:'vencer'},
-    {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',      venc:'20/05/2026', val:23331,  status:'vencer'},
-    {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',           venc:'20/05/2026', val:18030,  status:'vencer'},
-    {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                  venc:'20/05/2026', val:17754,  status:'vencer'},
-    {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',          venc:'20/05/2026', val:15323,  status:'vencer'},
-    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'15/05/2026', val:14000,  status:'vencer'},
-    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'22/05/2026', val:13733,  status:'futuro'},
-    {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',   venc:'20/05/2026', val:13362,  status:'vencer'},
-    {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',      venc:'20/05/2026', val:12000,  status:'vencer'},
-  ],
-  1: [], 2: [], 3: [],
-  4: [
-    {desc:'13° Salário — Provisão LimPar', cat:'Encargos Trabalhistas', venc:'30/04/2026', val:10000, status:'atrasado'},
-  ],
-  5: [
-    {desc:'Benefícios — Vale-Refeição 01–15',  cat:'Vale-Refeição',         venc:'29/05/2026', val:40103,  status:'vencer'},
-    {desc:'PIS e COFINS — DARF 5952',          cat:'Retenções DARF',        venc:'25/05/2026', val:40000,  status:'vencer'},
-    {desc:'Benefícios — Vale-Refeição 16–28',  cat:'Vale-Refeição',         venc:'15/05/2026', val:35000,  status:'vencer'},
-    {desc:'Free Quinzenal — Autônomos',        cat:'Remuneração Autônomos', venc:'29/05/2026', val:30000,  status:'vencer'},
-    {desc:'Simples Nacional DAS — Mai/2026',   cat:'Simples Nacional',      venc:'20/05/2026', val:23331,  status:'vencer'},
-    {desc:'Prêmio Assiduidade — LimPar',       cat:'ASSIDUIDADE',           venc:'20/05/2026', val:18030,  status:'vencer'},
-    {desc:'FGTS — Funcionários Mai/2026',      cat:'FGTS',                  venc:'20/05/2026', val:17754,  status:'vencer'},
-    {desc:'ISSQN — Jan/2026',                  cat:'Retenção ISS',          venc:'20/05/2026', val:15323,  status:'vencer'},
-    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'15/05/2026', val:14000,  status:'vencer'},
-    {desc:'Free Semanal — Autônomos',          cat:'Remuneração Autônomos', venc:'22/05/2026', val:13733,  status:'futuro'},
-    {desc:'INSS — LimPar Mai/2026',            cat:'INSS sobre Salários',   venc:'20/05/2026', val:13362,  status:'vencer'},
-    {desc:'Vale-Alimentação — LimPar',         cat:'Vale-Alimentação',      venc:'20/05/2026', val:12000,  status:'vencer'},
-  ],
-};
-
-const pagosBar = _isLimpar ? [462915,592808,702917,658674,233415,0,0,0,0,0,0,0] : [0,0,0,0,0,0,0,0,0,0,0,0];
-
-function barColors(selIdx) {
-  return pagosBar.map((_, i) => {
-    if (selIdx === null) return i < 5 ? '#f43f5e' : 'rgba(244,63,94,0.2)';
-    return i === selIdx ? '#f43f5e' : 'rgba(244,63,94,0.15)';
+function barColors(selIdxs) {
+  return pagosBar.map((v, i) => {
+    if (selIdxs === null) return v > 0 ? '#f43f5e' : 'rgba(244,63,94,0.2)';
+    const idxArr = Array.isArray(selIdxs) ? selIdxs : [selIdxs];
+    return idxArr.includes(i) ? '#f43f5e' : 'rgba(244,63,94,0.15)';
   });
 }
 
@@ -289,7 +215,7 @@ function renderTable(lista) {
 
   if (n === 0) {
     document.getElementById('tblPagar').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">Todos os pagamentos foram realizados neste mês</td></tr>';
+      '<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">Todos os pagamentos foram realizados neste período</td></tr>';
     foot.innerHTML = '';
     return;
   }
@@ -326,7 +252,7 @@ let chartPagos = new Chart(document.getElementById('chartPagos'), {
   type: 'bar',
   data: {
     labels: meses,
-    datasets: [{ data: pagosBar, backgroundColor: barColors(null), borderRadius: 5, borderSkipped: false }]
+    datasets: [{ data: [...pagosBar], backgroundColor: barColors(null), borderRadius: 5, borderSkipped: false }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
@@ -341,8 +267,8 @@ let chartPagos = new Chart(document.getElementById('chartPagos'), {
 let chartCat = new Chart(document.getElementById('chartCat'), {
   type: 'bar',
   data: {
-    labels: catsMes.all.labels,
-    datasets: [{ data: _isLimpar ? catsMes.all.data : catsMes.all.data.map(()=>0), backgroundColor: CAT_COLORS, borderRadius: 4, borderSkipped: false }]
+    labels: [],
+    datasets: [{ data: [], backgroundColor: CAT_COLORS, borderRadius: 4, borderSkipped: false }]
   },
   options: {
     indexAxis: 'y', responsive: true, maintainAspectRatio: false,
@@ -354,39 +280,132 @@ let chartCat = new Chart(document.getElementById('chartCat'), {
   }
 });
 
-renderTable(_isLimpar ? contasMes[5] : []);
+renderTable([]);
 
+// ── Popula dados locais a partir da resposta da API ──────────────────────────
+function popularDadosPag(api) {
+  kpisMes   = {};
+  catsMes   = {};
+  contasMes = {};
+  pagosBar  = new Array(12).fill(0);
 
-function updateMes() {
-  if (!_isLimpar) return;
-  const ano = document.getElementById('selAno').value;
-  if (ano !== '2026') {
-    document.getElementById('kpiPagos').textContent     = 'R$ 0';
-    document.getElementById('kpiAPagar').textContent    = 'R$ 0';
-    document.getElementById('kpiAtrasadas').textContent = 'R$ 0';
-    document.getElementById('kpiTotal').textContent     = 'R$ 0';
-    chartPagos.data.datasets[0].backgroundColor = barColors(null);
-    chartPagos.update();
-    chartCat.data.labels = catsMes.all.labels;
-    chartCat.data.datasets[0].data = catsMes.all.data.map(() => 0);
-    chartCat.update();
+  let allPagos = 0;
+  const allCatMap = {};
+
+  for (const [mStr, mes] of Object.entries(api.meses || {})) {
+    const m    = parseInt(mStr, 10);
+    const pag  = Math.round((mes.pagTotal || 0) * 100) / 100;
+
+    pagosBar[m - 1] = pag;
+    allPagos += pag;
+
+    kpisMes[m] = { pagos: pag, aPagar: 0, atrasadas: 0, total: pag };
+
+    const cats = mes.saiItens || [];
+    catsMes[m] = { labels: cats.map(c => c.name), data: cats.map(c => c.val) };
+    cats.forEach(c => { allCatMap[c.name] = (allCatMap[c.name] || 0) + c.val; });
+  }
+
+  // Pendentes do lado das saídas (tipo === 'pag')
+  const pendPag = (api.pendentes || []).filter(p => p.tipo === 'pag');
+
+  let aPagarTotal = 0, atrasadasTotal = 0;
+  pendPag.forEach(p => {
+    if (p.status === 'atrasado') atrasadasTotal += p.val;
+    else aPagarTotal += p.val;
+  });
+
+  kpisMes['all'] = {
+    pagos:      Math.round(allPagos * 100) / 100,
+    aPagar:     Math.round(aPagarTotal * 100) / 100,
+    atrasadas:  Math.round(atrasadasTotal * 100) / 100,
+    total:      Math.round((allPagos + aPagarTotal + atrasadasTotal) * 100) / 100,
+  };
+
+  const allEntries = Object.entries(allCatMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  catsMes['all'] = {
+    labels: allEntries.map(e => e[0]),
+    data:   allEntries.map(e => Math.round(e[1] * 100) / 100),
+  };
+
+  // Pendentes por mês (parse DD/MM/YYYY)
+  contasMes['all'] = pendPag;
+  for (let i = 1; i <= 12; i++) contasMes[i] = [];
+  pendPag.forEach(p => {
+    const parts = p.venc.split('/');
+    if (parts.length === 3) {
+      const m = parseInt(parts[1], 10);
+      if (contasMes[m]) contasMes[m].push(p);
+    }
+  });
+}
+
+// ── Loading overlay ──────────────────────────────────────────────────────────
+function mostrarLoading(sim) {
+  let ov = document.getElementById('loadingOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'loadingOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(10,15,30,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    ov.innerHTML = '<div style="color:#fff;font-size:15px;font-weight:600;letter-spacing:.5px">⏳ Carregando dados...</div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = sim ? 'flex' : 'none';
+}
+
+// ── Carrega dados do ano selecionado ─────────────────────────────────────────
+async function carregarDados(ano) {
+  const client = JSON.parse(localStorage.getItem('currentClient') || '{}');
+  const cnpj   = client.cnpj || client.document || '';
+  if (!cnpj) {
+    document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
     renderTable([]);
-    document.getElementById('qtdPendentes').textContent = 'sem dados para este ano';
     return;
   }
 
-  const sel     = MES_FILTER.getSelected(); // null = Todos, [1..12] = específicos
+  mostrarLoading(true);
+  try {
+    const api = await OF_API.getFinanceiro(cnpj, ano);
+    popularDadosPag(api);
+    temDados = true;
+
+    chartPagos.data.datasets[0].data = [...pagosBar];
+    chartPagos.data.datasets[0].backgroundColor = barColors(null);
+    chartPagos.update();
+
+    const cats = catsMes['all'] || { labels: [], data: [] };
+    chartCat.data.labels = cats.labels;
+    chartCat.data.datasets[0].data = cats.data;
+    chartCat.update();
+
+    updateMes();
+  } catch (e) {
+    console.error('Erro ao carregar dados:', e);
+    document.querySelectorAll('.kpi-val').forEach(el => { el.textContent = 'R$ 0'; });
+    renderTable([]);
+    document.getElementById('qtdPendentes').textContent = 'erro ao carregar dados';
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+// ── Atualiza visão conforme filtros de mês ───────────────────────────────────
+function updateMes() {
+  if (!temDados) return;
+
+  const sel     = MES_FILTER.getSelected(); // null = Todos, [1..12] = específico(s)
   const isTodos = !sel;
   const selIdxs = sel ? sel.map(m => m - 1) : null;
 
   // KPIs
   const k = isTodos
-    ? (kpisMes['all'] || { pagos:0, aPagar:0, atrasadas:0, total:0 })
+    ? (kpisMes['all'] || { pagos: 0, aPagar: 0, atrasadas: 0, total: 0 })
     : sel.reduce((acc, m) => {
-        const km = kpisMes[m] || { pagos:0, aPagar:0, atrasadas:0, total:0 };
-        return { pagos: acc.pagos+km.pagos, aPagar: acc.aPagar+km.aPagar,
-                 atrasadas: acc.atrasadas+km.atrasadas, total: acc.total+km.total };
-      }, { pagos:0, aPagar:0, atrasadas:0, total:0 });
+        const km = kpisMes[m] || { pagos: 0, aPagar: 0, atrasadas: 0, total: 0 };
+        return { pagos: acc.pagos + km.pagos, aPagar: acc.aPagar + km.aPagar,
+                 atrasadas: acc.atrasadas + km.atrasadas, total: acc.total + km.total };
+      }, { pagos: 0, aPagar: 0, atrasadas: 0, total: 0 });
+
   document.getElementById('kpiPagos').textContent     = 'R$ ' + k.pagos.toLocaleString('pt-BR');
   document.getElementById('kpiAPagar').textContent    = 'R$ ' + k.aPagar.toLocaleString('pt-BR');
   document.getElementById('kpiAtrasadas').textContent = 'R$ ' + k.atrasadas.toLocaleString('pt-BR');
@@ -398,19 +417,20 @@ function updateMes() {
 
   // Categorias
   if (isTodos) {
-    chartCat.data.labels = catsMes['all'].labels;
-    chartCat.data.datasets[0].data = catsMes['all'].data;
+    const cats = catsMes['all'] || { labels: [], data: [] };
+    chartCat.data.labels = cats.labels;
+    chartCat.data.datasets[0].data = cats.data;
   } else if (sel.length === 1) {
-    const cats = catsMes[sel[0]] || { labels:[], data:[] };
+    const cats = catsMes[sel[0]] || { labels: [], data: [] };
     chartCat.data.labels = cats.labels;
     chartCat.data.datasets[0].data = cats.data;
   } else {
     const catMap = {};
     sel.forEach(m => {
       const cats = catsMes[m];
-      if (cats) cats.labels.forEach((lbl, i) => { catMap[lbl] = (catMap[lbl]||0) + cats.data[i]; });
+      if (cats) cats.labels.forEach((lbl, i) => { catMap[lbl] = (catMap[lbl] || 0) + cats.data[i]; });
     });
-    const entries = Object.entries(catMap).sort((a,b) => b[1]-a[1]).slice(0,10);
+    const entries = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
     chartCat.data.labels = entries.map(e => e[0]);
     chartCat.data.datasets[0].data = entries.map(e => e[1]);
   }
@@ -419,7 +439,7 @@ function updateMes() {
   // Tabela de pendentes
   const items = isTodos
     ? (contasMes['all'] || [])
-    : sel.flatMap(m => contasMes[m] || []).sort((a,b) => b.val - a.val);
+    : sel.flatMap(m => contasMes[m] || []).sort((a, b) => b.val - a.val);
   renderTable(items);
 }
 
@@ -434,7 +454,7 @@ function updateClock() {
 }
 updateClock(); setInterval(updateClock, 30000);
 MES_FILTER.init(null, updateMes);
-updateMes();
+carregarDados(new Date().getFullYear());
 </script>
 
 <!-- SESSION TIMEOUT WARNING -->

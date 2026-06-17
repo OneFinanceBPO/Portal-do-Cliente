@@ -110,31 +110,30 @@ def validar_identidade(nome_hub, cnpj_hub, dados_ca_pro):
     }
 
 
-def validar_cadastro_no_portal(supabase, cnpj):
+def validar_cadastro_no_portal(conn, cnpj):
     """
-    Condição 3: verifica se o cliente está cadastrado e ativo no Supabase.
+    Condição 3: verifica se o cliente está cadastrado e ativo no banco.
     Retorna: {cadastrado, empresa_id, motivo}
     """
     try:
+        from banco import verificar_empresa_no_portal
         cnpj_norm = normalizar_cnpj(cnpj)
-        resp = supabase.table("empresas").select("id, ativo").eq("cnpj", cnpj_norm).execute()
-        dados = resp.data
+        resultado = verificar_empresa_no_portal(conn, cnpj_norm)
 
-        if not dados:
+        if not resultado["encontrado"]:
             return {"cadastrado": False, "empresa_id": None, "motivo": "PULADO: não cadastrado no portal do cliente"}
 
-        empresa = dados[0]
-        if not empresa.get("ativo", False):
+        if not resultado["ativo"]:
             return {"cadastrado": False, "empresa_id": None, "motivo": "PULADO: empresa inativa no portal do cliente"}
 
-        return {"cadastrado": True, "empresa_id": empresa["id"], "motivo": "OK"}
+        return {"cadastrado": True, "empresa_id": resultado["empresa_id"], "motivo": "OK"}
 
     except Exception as e:
-        log.error(f"Erro ao consultar Supabase: {e}")
+        log.error(f"Erro ao consultar banco: {e}")
         return {"cadastrado": False, "empresa_id": None, "motivo": f"PULADO: erro ao consultar portal ({e})"}
 
 
-def validar_cliente_completo(page, supabase, nome_hub, cnpj_hub):
+def validar_cliente_completo(page, conn, nome_hub, cnpj_hub):
     """
     Executa Condições 2 e 3 em sequência.
     Retorna dict com {valido, empresa_id, cnpj_confirmado, nome_confirmado, motivo}.
@@ -152,7 +151,7 @@ def validar_cliente_completo(page, supabase, nome_hub, cnpj_hub):
     nome_confirmado = dados_ca["nome_completo"] or nome_hub
 
     # Condição 3: cadastro no portal
-    portal_result = validar_cadastro_no_portal(supabase, cnpj_confirmado)
+    portal_result = validar_cadastro_no_portal(conn, cnpj_confirmado)
     if not portal_result["cadastrado"]:
         return {"valido": False, "motivo": portal_result["motivo"]}
 

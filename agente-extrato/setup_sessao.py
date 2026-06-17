@@ -30,11 +30,17 @@ def main():
     context = browser.new_context()
     page = context.new_page()
 
-    page.goto("https://app.contaazul.com/")
-    print("Aguardando você fazer login...")
+    page.goto("https://mais.contaazul.com/#/login")
+    print("Aguardando você fazer login e chegar no hub...")
+    print("(O script salva automaticamente quando detectar o hub)")
     print()
 
-    input(">>> Após entrar no hub do Conta Azul, pressione ENTER aqui: ")
+    # Aguarda até 5 minutos pelo hub (tempo suficiente para 2FA)
+    page.wait_for_url(
+        lambda url: "mais.contaazul.com" in url and "/login" not in url,
+        timeout=300_000,
+    )
+    print("Hub detectado! Salvando sessão...")
 
     # Salva a sessão (cookies + localStorage)
     context.storage_state(path=SESSION_FILE)

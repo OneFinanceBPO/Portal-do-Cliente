@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Identificador único do agente -->
+    <key>Label</key>
+    <string>com.onefinance.agente-extrato</string>
+
+    <!-- Comando a executar -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/admin/Library/CloudStorage/GoogleDrive-bruce@onefinance.com.br/Meu Drive/DIVERSOS - OF/INFORMAÇÕES DIVERSAS/Criações Claude/portal_onefinance/agente-extrato/main.py</string>
+        <string>--sem-email</string>
+    </array>
+
+    <!-- Diretório de trabalho (para que o .env e session.json sejam encontrados) -->
+    <key>WorkingDirectory</key>
+    <string>/Users/admin/Library/CloudStorage/GoogleDrive-bruce@onefinance.com.br/Meu Drive/DIVERSOS - OF/INFORMAÇÕES DIVERSAS/Criações Claude/portal_onefinance/agente-extrato</string>
+
+    <!-- Horário diário: 06:00 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- Logs de saída e erro -->
+    <key>StandardOutPath</key>
+    <string>/Users/admin/Library/CloudStorage/GoogleDrive-bruce@onefinance.com.br/Meu Drive/DIVERSOS - OF/INFORMAÇÕES DIVERSAS/Criações Claude/portal_onefinance/agente-extrato/logs/launchd_stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/admin/Library/CloudStorage/GoogleDrive-bruce@onefinance.com.br/Meu Drive/DIVERSOS - OF/INFORMAÇÕES DIVERSAS/Criações Claude/portal_onefinance/agente-extrato/logs/launchd_stderr.log</string>
+
+    <!-- Variáveis de ambiente (herda do sistema; .env é carregado pelo python-dotenv) -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/admin</string>
+    </dict>
+
+    <!-- Não reinicia automaticamente em caso de falha -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Roda mesmo se o horário foi perdido (ex: Mac estava desligado às 06h) -->
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
