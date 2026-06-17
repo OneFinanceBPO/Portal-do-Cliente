@@ -28,7 +28,9 @@ const OF_API = (() => {
     const base = workerUrl();
     if (!base) throw new Error('URL do Worker não configurada. Acesse Gerenciamento → Configurações.');
 
-    const url = `${base}/api/financeiro?cnpj=${encodeURIComponent(cnpj)}&ano=${ano}`;
+    // Remove formatação do CNPJ (pontos, barras, traços) — banco armazena só dígitos
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    const url = `${base}/api/financeiro?cnpj=${encodeURIComponent(cnpjLimpo)}&ano=${ano}`;
     const res = await fetch(url, {
       headers: { 'X-App-Secret': appSecret() },
     });
