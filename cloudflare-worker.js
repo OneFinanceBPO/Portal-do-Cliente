@@ -97,7 +97,7 @@ async function handleFinanceiro(request, env, corsHeaders) {
     ORDER BY mes, tipo, total DESC
   `, [cnpj, ano]);
 
-  // ── Q3: Pendentes (Em aberto / Agendado) ──
+  // ── Q3: Pendentes (Em aberto / Agendado) — filtrados pelo mesmo ano ──
   const pendentesRows = await queryNeon(env.DATABASE_URL, `
     SELECT
       TO_CHAR(data_lancamento, 'DD/MM/YYYY')            AS venc,
@@ -109,11 +109,12 @@ async function handleFinanceiro(request, env, corsHeaders) {
       situacao
     FROM extrato_movimentacoes
     WHERE empresa_cnpj = $1
+      AND EXTRACT(YEAR FROM data_lancamento)::int = $2
       AND situacao IN ('Em aberto', 'Agendado')
       AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída')
+      AND resumo NOT LIKE 'Saldo Inicial%'
     ORDER BY data_lancamento, ABS(valor) DESC
-    LIMIT 100
-  `, [cnpj]);
+  `, [cnpj, ano]);
 
   // ── Agrega por mês ──
   const meses = {};

@@ -309,11 +309,33 @@ function popularDadosPag(api) {
   // Pendentes do lado das saídas (tipo === 'pag')
   const pendPag = (api.pendentes || []).filter(p => p.tipo === 'pag');
 
-  let aPagarTotal = 0, atrasadasTotal = 0;
+  // Distribui pendentes por mês
+  contasMes['all'] = pendPag;
+  for (let i = 1; i <= 12; i++) contasMes[i] = [];
   pendPag.forEach(p => {
-    if (p.status === 'atrasado') atrasadasTotal += p.val;
-    else aPagarTotal += p.val;
+    const parts = p.venc.split('/');
+    if (parts.length === 3) {
+      const m = parseInt(parts[1], 10);
+      if (contasMes[m]) contasMes[m].push(p);
+    }
   });
+
+  // Calcula aPagar/atrasadas por mês e totais globais
+  let aPagarTotal = 0, atrasadasTotal = 0;
+  for (let m = 1; m <= 12; m++) {
+    let ap = 0, at = 0;
+    (contasMes[m] || []).forEach(p => {
+      if (p.status === 'atrasado') at += p.val;
+      else ap += p.val;
+    });
+    if (kpisMes[m]) {
+      kpisMes[m].aPagar    = Math.round(ap * 100) / 100;
+      kpisMes[m].atrasadas = Math.round(at * 100) / 100;
+      kpisMes[m].total     = Math.round((kpisMes[m].pagos + ap + at) * 100) / 100;
+    }
+    aPagarTotal    += ap;
+    atrasadasTotal += at;
+  }
 
   kpisMes['all'] = {
     pagos:      Math.round(allPagos * 100) / 100,
@@ -327,17 +349,6 @@ function popularDadosPag(api) {
     labels: allEntries.map(e => e[0]),
     data:   allEntries.map(e => Math.round(e[1] * 100) / 100),
   };
-
-  // Pendentes por mês (parse DD/MM/YYYY)
-  contasMes['all'] = pendPag;
-  for (let i = 1; i <= 12; i++) contasMes[i] = [];
-  pendPag.forEach(p => {
-    const parts = p.venc.split('/');
-    if (parts.length === 3) {
-      const m = parseInt(parts[1], 10);
-      if (contasMes[m]) contasMes[m].push(p);
-    }
-  });
 }
 
 // ── Loading overlay ──────────────────────────────────────────────────────────
