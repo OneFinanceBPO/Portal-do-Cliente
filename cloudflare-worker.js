@@ -59,6 +59,9 @@ async function handleFinanceiro(request, env, corsHeaders) {
     });
   }
 
+  // Categorias excluídas de todos os cálculos (transferências entre contas)
+  const CAT_EXCLUIDAS = ["'Transferência de Entrada'", "'Transferência de Saída'"].join(', ');
+
   // ── Q1: Fluxo diário realizado ──
   const dailyRows = await queryNeon(env.DATABASE_URL, `
     SELECT
@@ -71,6 +74,7 @@ async function handleFinanceiro(request, env, corsHeaders) {
       AND EXTRACT(YEAR FROM data_lancamento)::int = $2
       AND situacao IN ('Conciliado', 'Quitado')
       AND resumo NOT LIKE 'Saldo Inicial%'
+      AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída')
     GROUP BY data_lancamento
     ORDER BY data_lancamento
   `, [cnpj, ano]);
@@ -88,6 +92,7 @@ async function handleFinanceiro(request, env, corsHeaders) {
       AND situacao IN ('Conciliado', 'Quitado')
       AND resumo NOT LIKE 'Saldo Inicial%'
       AND valor <> 0
+      AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída')
     GROUP BY mes, cat, tipo
     ORDER BY mes, tipo, total DESC
   `, [cnpj, ano]);
@@ -105,6 +110,7 @@ async function handleFinanceiro(request, env, corsHeaders) {
     FROM extrato_movimentacoes
     WHERE empresa_cnpj = $1
       AND situacao IN ('Em aberto', 'Agendado')
+      AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída')
     ORDER BY data_lancamento, ABS(valor) DESC
     LIMIT 100
   `, [cnpj]);
