@@ -111,8 +111,11 @@ async function handleFinanceiro(request, env, corsHeaders) {
     WHERE empresa_cnpj = $1
       AND EXTRACT(YEAR FROM data_lancamento)::int = $2
       AND situacao IN ('Em aberto', 'Agendado')
-      AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída')
+      AND COALESCE(TRIM(categoria), '') NOT IN ('Transferência de Entrada', 'Transferência de Saída', 'TESTES')
       AND resumo NOT LIKE 'Saldo Inicial%'
+      AND resumo NOT ILIKE '%lembrete%'
+      AND resumo NOT ILIKE 'Previsao %'
+      AND NOT (resumo ILIKE '%previsão%' AND resumo NOT ILIKE 'Previsão / Provisão%')
     ORDER BY data_lancamento, ABS(valor) DESC
   `, [cnpj, ano]);
 

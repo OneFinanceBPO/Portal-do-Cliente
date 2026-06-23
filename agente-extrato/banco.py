@@ -116,10 +116,17 @@ def salvar_extrato(conn, df):
     registros = df.where(df.notna(), None).to_dict(orient="records")
     lotes_valores = [tuple(rec.get(c) for c in colunas) for rec in registros]
 
+    # DO UPDATE SET situacao: atualiza o status quando o mesmo registro muda de
+    # "Em aberto" para "Conciliado" mantendo o mesmo valor (ex: pagamento confirmado)
     sql = f"""
         INSERT INTO extrato_movimentacoes ({', '.join(colunas)})
         VALUES %s
-        ON CONFLICT (empresa_cnpj, data_lancamento, resumo, valor) DO NOTHING
+        ON CONFLICT (empresa_cnpj, data_lancamento, resumo, valor)
+        DO UPDATE SET
+            situacao      = EXCLUDED.situacao,
+            saldo         = EXCLUDED.saldo,
+            data_extracao = EXCLUDED.data_extracao
+        WHERE extrato_movimentacoes.situacao IS DISTINCT FROM EXCLUDED.situacao
     """
 
     total_salvos = 0
