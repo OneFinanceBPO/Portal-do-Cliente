@@ -1,9 +1,9 @@
-import { NextAuthOptions } from "next-auth";
+import * as NextAuth from "next-auth";
 import CredentialsProvider from 'next-auth/providers/credentials';
-import bycrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: NextAuth.Session = {
     session: { strategy: 'jwt', maxAge: 20 * 60 },
     pages: { signIn: '/login' },
     providers: [
@@ -18,12 +18,12 @@ export const authOptions: NextAuthOptions = {
 
                 const user = await db.user.findUnique({
                     where: { email: credentials.email.trim().toLowerCase() },
-                    include: { acessos: { select: { clienteId: true } } },
+                    include: { acessos: { select: { empresaId: true } } },
                 });
 
                 if (!user || !user.active) return null;
 
-                const passwordOk = await bycrypt.compare(credentials.password, user.passwordHash);
+                const passwordOk = await bcrypt.compare(credentials.password, user.passwordHash);
                 if (!passwordOk) return null;
 
                 await db.user.update({
@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
                     name: user.nome,
                     email: user.email,
                     role: user.role,
-                    acessos: user.acessos.map((a) => a.clienteId),
+                    acessos: user.acessos.map((a) => a.empresaId),
                 };
             },
         }),

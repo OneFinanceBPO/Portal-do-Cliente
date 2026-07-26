@@ -1,14 +1,151 @@
-generator client{
-    provider = "prisma-client-js"
+generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-enum role {
-    ADMIN
-    USER
-    CLIENT
+enum Role {
+  ADMIN
+  LIMITADO
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODELS NOVOS — sistema de login/gerenciamento (o que estamos construindo)
+// ═══════════════════════════════════════════════════════════════
+
+model Usuario {
+  id           String    @id @default(cuid())
+  nome         String
+  email        String    @unique
+  senhaHash    String    @map("senha_hash")
+  role         Role      @default(LIMITADO)
+  ativo        Boolean   @default(true)
+  ultimoLogin  DateTime? @map("ultimo_login")
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em")
+
+  acessos           UsuarioAcesso[]
+  logs              LogAtividade[]
+  refreshTokens     RefreshToken[]
+  tokensRecuperacao TokenRecuperacao[]
+
+  @@map("usuarios")
+}
+
+// Vínculo N:N entre usuário e empresa — aponta pra tabela `empresas` que já existe
+model UsuarioAcesso {
+  usuarioId String  @map("usuario_id")
+  empresaId String  @map("empresa_id") @db.Uuid
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, empresaId])
+  @@map("usuario_acesso")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  usuarioId String   @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String   @map("token_hash")
+  expiraEm  DateTime @map("expira_em")
+  revogado  Boolean  @default(false)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@index([usuarioId])
+  @@map("refresh_tokens")
+}
+
+model TokenRecuperacao {
+  id        String   @id @default(cuid())
+  usuarioId String   @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tokenHash String   @map("token_hash")
+  expiraEm  DateTime @map("expira_em")
+  usado     Boolean  @default(false)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@index([usuarioId])
+  @@map("tokens_recuperacao")
+}
+
+// Log de atividades do PORTAL (login, CRUD, senha) — diferente do log_execucoes/log_clientes,
+// que são do pipeline de sincronização financeira e continuam existindo do jeito que estão.
+model LogAtividade {
+  id        String   @id @default(cuid())
+  usuarioId String?  @map("usuario_id")
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  categoria String   // login | clientes | perfis | seguranca
+  acao      String
+  detalhe   String?
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  @@index([categoria, criadoEm])
+  @@map("log_atividades")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODELS EXISTENTES — puxados direto do banco com `prisma db pull`,
+// só adicionei a relação com UsuarioAcesso. Nada mais foi alterado.
+// ═══════════════════════════════════════════════════════════════
+
+model Empresa {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                  String
+  cnpj                  String?               @unique
+  ativo                 Boolean?              @default(true)
+  criado_em             DateTime?             @default(now()) @db.Timestamptz(6)
+  atualizado_em         DateTime?             @default(now()) @db.Timestamptz(6)
+  extrato_movimentacoes ExtratoMovimentacao[]
+  acessos               UsuarioAcesso[]
+
+  @@map("empresas")
+}
+
+model ExtratoMovimentacao {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  empresa_id      String?   @db.Uuid
+  empresa_cnpj    String
+  dataLancamento  DateTime? @map("data_lancamento") @db.Date
+  resumo          String?
+  situacao        String?
+  valor           Decimal?  @db.Decimal(15, 2)
+  saldo           Decimal?  @db.Decimal(15, 2)
+  categoria       String?
+  conta           String?
+  periodo         String?   @default("todo_periodo")
+  data_extracao   DateTime? @default(now()) @db.Timestamptz(6)
+  data_vencimento DateTime? @db.Date
+  empresas        Empresa?  @relation(fields: [empresa_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([empresa_cnpj, dataLancamento, resumo, valor])
+  @@map("extrato_movimentacoes")
+}
+
+model log_clientes {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  execucao_id      String?        @db.Uuid
+  empresa_nome     String?
+  empresa_cnpj     String?
+  status           String?
+  motivo           String?
+  registros_salvos Int?           @default(0)
+  executado_em     DateTime?      @default(now()) @db.Timestamptz(6)
+  log_execucoes    log_execucoes? @relation(fields: [execucao_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model log_execucoes {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  iniciado_em      DateTime?      @default(now()) @db.Timestamptz(6)
+  finalizado_em    DateTime?      @db.Timestamptz(6)
+  total_hub        Int?
+  total_portal     Int?
+  clientes_ok      Int?           @default(0)
+  clientes_erro    Int?           @default(0)
+  clientes_pulados Int?           @default(0)
+  status           String?        @default("em_andamento")
+  log_clientes     log_clientes[]
 }

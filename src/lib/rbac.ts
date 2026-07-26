@@ -1,5 +1,5 @@
-import { getServerSession } from 'next-auth';
-import { AuthOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export type SessaoUsuario = {
     id: string;
@@ -8,7 +8,7 @@ export type SessaoUsuario = {
 };
 
 export async function getSessaoOuNull(): Promise<SessaoUsuario | null> {
-    const session = await getServerSession(AuthOptions);
+    const session = await getServerSession(authOptions);
     if (!session?.user) return null;
     const user = session.user as any;
     return { id: user.id, role: user.role, acessos: user.acessos ?? [] };
