@@ -2,19 +2,19 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
 export type SessaoUsuario = {
-    id: string;
-    role: 'ADMIN' | 'USER' | 'CLIENTE';
-    acessos: string[];
+  id: string;
+  role: 'ADMIN' | 'LIMITADO';
+  acessos: string[];
 };
 
 export async function getSessaoOuNull(): Promise<SessaoUsuario | null> {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return null;
-    const user = session.user as any;
-    return { id: user.id, role: user.role, acessos: user.acessos ?? [] };
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return null;
+  const user = session.user as any;
+  return { id: user.id, role: user.role, acessos: user.acessos ?? [] };
 }
 
-export function podeAcessarCliente(sessao: SessaoUsuario, clienteId: string): boolean {
-    if (sessao.role === 'ADMIN') return true;
-    return sessao.acessos.includes(clienteId);
+export function podeAcessarCliente(sessao: SessaoUsuario, empresaId: string): boolean {
+  if (sessao.role === 'ADMIN') return true;
+  return sessao.acessos.includes(empresaId);
 }
