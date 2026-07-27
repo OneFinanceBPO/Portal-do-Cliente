@@ -11,25 +11,25 @@ export default async function ClientesPage() {
   const empresas = await db.empresa.findMany({ orderBy: { nome: 'asc' } });
 
   return (
-    <main>
-      <h1>Gerenciamento de clientes</h1>
+    <main className="page">
+      <div className="sec-header">
+        <div className="sec-title">Gerenciamento de clientes</div>
+      </div>
 
       <NovoClienteForm />
 
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>CNPJ</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          {empresas.map((e) => (
-            <tr key={e.id}>
-              <td>{e.nome}</td>
-              <td>{e.cnpj}</td>
-              <td>{e.ativo ? 'Ativo' : 'Inativo'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="clients-grid" style={{ marginTop: '20px' }}>
+        {empresas.map((e) => (
+          <div key={e.id} className="client-card">
+            <div className="client-icon">🏢</div>
+            <div className="client-info">
+              <div className="client-name">{e.nome}</div>
+              <div className="client-meta">CNPJ {e.cnpj} · {e.ativo ? 'Ativo' : 'Inativo'}</div>
+            </div>
+          </div>
+        ))}
+        {empresas.length === 0 && <p style={{ color: 'var(--text2)' }}>Nenhum cliente cadastrado.</p>}
+      </div>
     </main>
   );
 }

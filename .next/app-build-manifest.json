@@ -16,25 +16,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(auth)/login/page.js"
     ],
-    "/contas-receber/page": [
+    "/(financeiro)/contas-receber/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/contas-receber/page.js"
+      "static/chunks/app/(financeiro)/contas-receber/page.js"
     ],
-    "/contas-pagar/page": [
+    "/(financeiro)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/contas-pagar/page.js"
+      "static/chunks/app/(financeiro)/layout.js"
     ],
-    "/fluxo-caixa/page": [
+    "/(financeiro)/contas-pagar/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/fluxo-caixa/page.js"
+      "static/chunks/app/(financeiro)/contas-pagar/page.js"
     ],
-    "/dre/page": [
+    "/(financeiro)/dre/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dre/page.js"
+      "static/chunks/app/(financeiro)/dre/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",

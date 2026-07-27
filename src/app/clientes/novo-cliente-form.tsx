@@ -33,16 +33,25 @@ export default function NovoClienteForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Novo cliente</h2>
-      <label htmlFor="nome">Nome / razão social</label>
-      <input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+    <form onSubmit={handleSubmit} className="card">
+      <div className="form-group">
+        <label className="form-lbl" htmlFor="nome">Nome / razão social</label>
+        <div className="form-wrap">
+          <input className="form-input" id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        </div>
+      </div>
 
-      <label htmlFor="cnpj">CNPJ (só números)</label>
-      <input id="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} maxLength={18} required />
+      <div className="form-group">
+        <label className="form-lbl" htmlFor="cnpj">CNPJ (só números)</label>
+        <div className="form-wrap">
+          <input className="form-input" id="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} maxLength={18} required />
+        </div>
+      </div>
 
-      {erro && <p role="alert">{erro}</p>}
-      <button type="submit" disabled={carregando}>{carregando ? 'Salvando…' : 'Criar cliente'}</button>
+      {erro && <p style={{ color: 'var(--red)', fontSize: '12px', marginBottom: '12px' }}>{erro}</p>}
+      <button type="submit" className="btn btn-primary" disabled={carregando}>
+        {carregando ? 'Salvando…' : 'Criar cliente'}
+      </button>
     </form>
   );
 }
