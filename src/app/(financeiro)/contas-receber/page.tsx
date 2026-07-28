@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getSessaoOuNull, podeAcessarCliente } from '@/lib/rbac';
-import TabelaFinanceira from '@/components/tabela-financeira';
+import { getEmpresaIdAtual } from '@/lib/empresa-atual';
+import SyncEmpresaCookie from '@/components/financeiro/sync-empresa-cookie';
+import ContasReceberClient from './contas-receber-client';
 
 export default async function ContasReceberPage({ searchParams }: { searchParams: { clienteId?: string } }) {
   const sessao = await getSessaoOuNull();
@@ -10,9 +12,9 @@ export default async function ContasReceberPage({ searchParams }: { searchParams
   if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
 
   return (
-    <main className="page">
-      <h1>Contas a Receber</h1>
-      <TabelaFinanceira clienteId={clienteId} destaque="rec" />
-    </main>
+    <>
+      <SyncEmpresaCookie clienteId={clienteId} />
+      <ContasReceberClient clienteId={clienteId} />
+    </>
   );
 }

@@ -1,9 +1,9 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/api/v1/financeiro/route": "app/api/v1/financeiro/route.js",
   "/(financeiro)/contas-receber/page": "app/(financeiro)/contas-receber/page.js",
   "/(financeiro)/contas-pagar/page": "app/(financeiro)/contas-pagar/page.js",
+  "/(financeiro)/fluxo-caixa/page": "app/(financeiro)/fluxo-caixa/page.js",
   "/(financeiro)/dre/page": "app/(financeiro)/dre/page.js"
 }
