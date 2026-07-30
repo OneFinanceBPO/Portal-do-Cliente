@@ -1,10 +1,25 @@
 {
   "pages": {
+    "/(admin)/clientes/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(admin)/clientes/page.js"
+    ],
+    "/(admin)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(admin)/layout.js"
+    ],
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
+    ],
+    "/(admin)/log/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(admin)/log/page.js"
     ],
     "/(auth)/login/page": [
       "static/chunks/webpack.js",
@@ -26,20 +41,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(financeiro)/layout.js"
     ],
-    "/(financeiro)/contas-pagar/page": [
+    "/(admin)/perfil/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(financeiro)/contas-pagar/page.js"
+      "static/chunks/app/(admin)/perfil/page.js"
     ],
-    "/(financeiro)/fluxo-caixa/page": [
+    "/(admin)/usuarios/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(financeiro)/fluxo-caixa/page.js"
+      "static/chunks/app/(admin)/usuarios/page.js"
     ],
-    "/(financeiro)/dre/page": [
+    "/(auth)/recuperar-senha/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(financeiro)/dre/page.js"
+      "static/chunks/app/(auth)/recuperar-senha/page.js"
+    ],
+    "/(auth)/redefinir-senha/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(auth)/redefinir-senha/page.js"
     ]
   }
 }

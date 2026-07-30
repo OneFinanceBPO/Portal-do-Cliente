@@ -15,7 +15,7 @@ export default function Sidebar({ items, bottomItems }: { items: NavItem[]; bott
   return (
     <aside className="sidebar" id="mainSidebar">
       <div className="brand">
-        <Link href="/dashboard">
+        <Link href="/clientes">
           <img src="/logo.png" alt="One Finance" />
         </Link>
       </div>

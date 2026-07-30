@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const cacheKey = `financeiro:v2:${empresaId}:${ano}`;
 
   const dados = await withCache(cacheKey, 300, async () => {
-    // ── Movimentações realizadas (Conciliado/Quitado) ──
+
     const movimentacoes = await db.extratoMovimentacao.findMany({
       where: {
         empresa_id: empresaId,
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       else meses[mes].pagTotal += Math.abs(valor);
     }
 
-    // ── Pendentes (Em aberto / Agendado) ──
+
     const pendentesRaw = await db.extratoMovimentacao.findMany({
       where: {
         empresa_id: empresaId,
@@ -84,6 +84,30 @@ export async function GET(req: NextRequest) {
 
     const saldoMensal = Object.values(meses).map((m) => m.recTotal - m.pagTotal);
 
+    const categoriasPagMap: Record<string, number> = {};
+    for (const mv of movimentacoes) {
+      if (mv.valor === null || Number(mv.valor) >= 0) continue;
+      const cat = mv.categoria?.trim() || 'Outros';
+      categoriasPagMap[cat] = (categoriasPagMap[cat] || 0) + Math.abs(Number(mv.valor));
+    }
+    const categoriasPag = Object.entries(categoriasPagMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([nome, valor]) => ({ nome, valor }));
+
+
+    const pendentesPag = pendentesRaw
+      .filter((p) => p.valor !== null && Number(p.valor) < 0)
+      .sort((a, b) => (a.dataLancamento?.getTime() ?? 0) - (b.dataLancamento?.getTime() ?? 0))
+      .slice(0, 20)
+      .map((p) => ({
+        descricao: p.resumo ?? '—',
+        categoria: p.categoria?.trim() || 'Outros',
+        vencimento: p.dataLancamento?.toLocaleDateString('pt-BR') ?? '—',
+        valor: Math.abs(Number(p.valor)),
+        status: p.dataLancamento && p.dataLancamento < hoje ? 'atrasado' : 'a vencer',
+      }));
+
     return {
       ano,
       meses: Object.values(meses),
@@ -92,6 +116,8 @@ export async function GET(req: NextRequest) {
       abertoRecPorMes,
       abertoPagPorMes,
       saldoMensal,
+      categoriasPag,
+      pendentesPag,
     };
   });
 

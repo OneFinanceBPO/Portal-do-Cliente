@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSessaoOuNull, podeAcessarCliente } from '@/lib/rbac';
 import { getEmpresaIdAtual } from '@/lib/empresa-atual';
 import SyncEmpresaCookie from '@/components/financeiro/sync-empresa-cookie';
-import TabelaFinanceira from '@/components/tabela-financeira';
+import ContasPagarClient from './contas-pagar-client';
 
 export default async function ContasPagarPage({ searchParams }: { searchParams: { clienteId?: string } }) {
   const sessao = await getSessaoOuNull();
@@ -12,10 +12,9 @@ export default async function ContasPagarPage({ searchParams }: { searchParams: 
   if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
 
   return (
-    <main className="page">
+    <>
       <SyncEmpresaCookie clienteId={clienteId} />
-      <h1>Contas a Pagar</h1>
-      <TabelaFinanceira clienteId={clienteId} destaque="pag" />
-    </main>
+      <ContasPagarClient clienteId={clienteId} />
+    </>
   );
 }

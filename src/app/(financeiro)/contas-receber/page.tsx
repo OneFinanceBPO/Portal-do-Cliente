@@ -8,7 +8,7 @@ export default async function ContasReceberPage({ searchParams }: { searchParams
   const sessao = await getSessaoOuNull();
   if (!sessao) redirect('/login');
 
-  const clienteId = searchParams.clienteId;
+  const clienteId = getEmpresaIdAtual(searchParams.clienteId)
   if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
 
   return (

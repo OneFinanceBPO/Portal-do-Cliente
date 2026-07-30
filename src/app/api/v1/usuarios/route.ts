@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { getSessaoOuNull } from "@/lib/rbac";
 
 export async function GET() {
-    const usuarios = await db.usuarios.findMany({
+    const usuarios = await db.usuario.findMany({
         select: {
             id: true, nome: true, email: true, role: true, ativo: true, ultimoLogin: true,
-            acessos: { select: { cliente: { select: { id: true, razaoSocial: true } } } },
+            acessos: { select: { empresa: { select: { id: true, nome: true } } } },
         },
         orderBy: { nome: 'asc' },
     });
-    return NextRequest.json({ usuarios });
+    return NextResponse.json({ usuarios });
 }
 
 const novoUsuarioSchema = z.object({
@@ -24,10 +25,14 @@ const novoUsuarioSchema = z.object({
 
 export async function POST(req: NextRequest) {
     const sessao = await getSessaoOuNull();
+    if (!sessao || sessao.role !== 'ADMIN') {
+        return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 });
+    }
+
     const body = await req.json();
     const parsed = novoUsuarioSchema.safeParse(body);
     if (!parsed.success) {
-        return NextRequest.json({ error: parsed.error.flatten() }, { status: 400 });
+        return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
     const { nome, email, senha, role, clienteIds } = parsed.data;
@@ -39,12 +44,12 @@ export async function POST(req: NextRequest) {
             email: email.toLowerCase(),
             senhaHash,
             role,
-            acessos: { create: clienteIds.map((clienteId) => ({ clienteId })) }
+            acessos: { create: clienteIds.map((empresaId) => ({ empresaId })) },
         },
     });
 
     await db.logAtividade.create({
-        data: { usuarioId: sessao!.id, categoria: 'perfis', acao: 'Perfil criado', detalhe: email },
+        data: { usuarioId: sessao.id, categoria: 'perfis', acao: 'Perfil criado', detalhe: email },
     });
 
     return NextResponse.json({ usuario: { id: usuario.id, nome, email, role } }, { status: 201 });

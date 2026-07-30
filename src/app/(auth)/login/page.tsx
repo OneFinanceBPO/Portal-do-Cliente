@@ -25,7 +25,7 @@ export default function LoginPage() {
       setErro('E-mail ou senha inválidos');
       return;
     }
-    router.push('/dashboard');
+    router.push('/clientes');
   }
 
   return (

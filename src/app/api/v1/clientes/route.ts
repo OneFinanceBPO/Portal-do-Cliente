@@ -15,9 +15,10 @@ export async function GET() {
     return NextResponse.json({ empresa });
 }
 
-const novoEmpresachema = z.object({
+const novoClienteSchema = z.object({
     nome: z.string().min(2),
-    cnpj: z.string().regex(/^\d{14}$/, 'CNPJ Deve ter 14 dígitos'),
+    cnpj: z.string().regex(/^\d{14}$/, 'CNPJ deve ter 14 dígitos'),
+    segmento: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -27,10 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const parsed = novoEmpresachema.safeParse(body);
+    const parsed = novoClienteSchema.safeParse(body);
     if (!parsed.success) {
         return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
+
+
 
     const empresa = await db.empresa.create({ data: parsed.data });
 
