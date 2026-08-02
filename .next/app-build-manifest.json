@@ -60,6 +60,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(auth)/redefinir-senha/page.js"
+    ],
+    "/(financeiro)/contas-pagar/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(financeiro)/contas-pagar/page.js"
+    ],
+    "/(financeiro)/fluxo-caixa/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(financeiro)/fluxo-caixa/page.js"
+    ],
+    "/(financeiro)/dre/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(financeiro)/dre/page.js"
     ]
   }
 }

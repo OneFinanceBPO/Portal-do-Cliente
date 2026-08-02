@@ -12,6 +12,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const empresaId = searchParams.get('clienteId');
   const ano = parseInt(searchParams.get('ano') || `${new Date().getFullYear()}`, 10);
+  const mesParam = searchParams.get('mes');
+  const mes = mesParam && Number(mesParam) >= 1 && Number(mesParam) <= 12 ? Number(mesParam) : null;
 
   if (!empresaId) {
     return NextResponse.json({ error: 'Parâmetro clienteId obrigatório' }, { status: 400 });
@@ -20,37 +22,58 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Sem acesso a este cliente' }, { status: 403 });
   }
 
-  const cacheKey = `financeiro:v2:${empresaId}:${ano}`;
+  const cacheKey = `financeiro:v3:${empresaId}:${ano}:${mes ?? 'todos'}`;
 
   const dados = await withCache(cacheKey, 300, async () => {
+
+    const inicioPeriodo = mes ? new Date(`${ano}-${String(mes).padStart(2, '0')}-01`) : new Date(`${ano}-01-01`);
+    const fimPeriodo = mes
+      ? new Date(mes === 12 ? `${ano + 1}-01-01` : `${ano}-${String(mes + 1).padStart(2, '0')}-01`)
+      : new Date(`${ano + 1}-01-01`);
 
     const movimentacoes = await db.extratoMovimentacao.findMany({
       where: {
         empresa_id: empresaId,
-        dataLancamento: { gte: new Date(`${ano}-01-01`), lt: new Date(`${ano + 1}-01-01`) },
+        dataLancamento: { gte: inicioPeriodo, lt: fimPeriodo },
         situacao: { in: ['Conciliado', 'Quitado'] },
         categoria: { notIn: CATEGORIAS_EXCLUIDAS },
       },
       orderBy: { dataLancamento: 'asc' },
     });
 
+    const movimentacoesAnoInteiro = mes
+      ? await db.extratoMovimentacao.findMany({
+          where: {
+            empresa_id: empresaId,
+            dataLancamento: { gte: new Date(`${ano}-01-01`), lt: new Date(`${ano + 1}-01-01`) },
+            situacao: { in: ['Conciliado', 'Quitado'] },
+            categoria: { notIn: CATEGORIAS_EXCLUIDAS },
+          },
+        })
+      : movimentacoes;
+
     const meses: Record<number, { mes: number; recTotal: number; pagTotal: number }> = {};
     for (let m = 1; m <= 12; m++) meses[m] = { mes: m, recTotal: 0, pagTotal: 0 };
 
-    for (const mv of movimentacoes) {
+    for (const mv of movimentacoesAnoInteiro) {
       if (!mv.dataLancamento || mv.valor === null) continue;
-      const mes = mv.dataLancamento.getMonth() + 1;
+      const mesLancamento = mv.dataLancamento.getMonth() + 1;
       const valor = Number(mv.valor);
-      if (valor > 0) meses[mes].recTotal += valor;
-      else meses[mes].pagTotal += Math.abs(valor);
+      if (valor > 0) meses[mesLancamento].recTotal += valor;
+      else meses[mesLancamento].pagTotal += Math.abs(valor);
     }
 
+    const recebidasPeriodo = movimentacoes.filter((mv) => mv.valor !== null && Number(mv.valor) > 0)
+      .reduce((s, mv) => s + Number(mv.valor), 0);
+    const pagasPeriodo = movimentacoes.filter((mv) => mv.valor !== null && Number(mv.valor) < 0)
+      .reduce((s, mv) => s + Math.abs(Number(mv.valor)), 0);
 
     const pendentesRaw = await db.extratoMovimentacao.findMany({
       where: {
         empresa_id: empresaId,
         situacao: { in: ['Em aberto', 'Agendado'] },
         categoria: { notIn: CATEGORIAS_EXCLUIDAS },
+        ...(mes ? { dataLancamento: { gte: inicioPeriodo, lt: fimPeriodo } } : {}),
       },
     });
 
@@ -63,23 +86,23 @@ export async function GET(req: NextRequest) {
     for (const p of pendentesRaw) {
       if (!p.dataLancamento || p.valor === null) continue;
       const valor = Math.abs(Number(p.valor));
-      const mes = p.dataLancamento.getMonth() + 1;
+      const mesLancamento = p.dataLancamento.getMonth() + 1;
       const atrasado = p.dataLancamento < hoje;
       const ehReceber = Number(p.valor) >= 0;
 
       if (ehReceber) {
-        if (atrasado) { kpisRec.vencidas += valor; abertoRecPorMes[mes - 1].vencidos += valor; }
-        else { kpisRec.aVencer += valor; abertoRecPorMes[mes - 1].aVencer += valor; }
+        if (atrasado) { kpisRec.vencidas += valor; abertoRecPorMes[mesLancamento - 1].vencidos += valor; }
+        else { kpisRec.aVencer += valor; abertoRecPorMes[mesLancamento - 1].aVencer += valor; }
       } else {
-        if (atrasado) { kpisPag.vencidas += valor; abertoPagPorMes[mes - 1].vencidos += valor; }
-        else { kpisPag.aVencer += valor; abertoPagPorMes[mes - 1].aVencer += valor; }
+        if (atrasado) { kpisPag.vencidas += valor; abertoPagPorMes[mesLancamento - 1].vencidos += valor; }
+        else { kpisPag.aVencer += valor; abertoPagPorMes[mesLancamento - 1].aVencer += valor; }
       }
     }
 
-    kpisRec.recebidas = Object.values(meses).reduce((s, m) => s + m.recTotal, 0);
+    kpisRec.recebidas = recebidasPeriodo;
     kpisRec.total = kpisRec.vencidas + kpisRec.aVencer + kpisRec.recebidas;
 
-    kpisPag.pagas = Object.values(meses).reduce((s, m) => s + m.pagTotal, 0);
+    kpisPag.pagas = pagasPeriodo;
     kpisPag.total = kpisPag.vencidas + kpisPag.aVencer + kpisPag.pagas;
 
     const saldoMensal = Object.values(meses).map((m) => m.recTotal - m.pagTotal);
@@ -95,7 +118,6 @@ export async function GET(req: NextRequest) {
       .slice(0, 6)
       .map(([nome, valor]) => ({ nome, valor }));
 
-
     const pendentesPag = pendentesRaw
       .filter((p) => p.valor !== null && Number(p.valor) < 0)
       .sort((a, b) => (a.dataLancamento?.getTime() ?? 0) - (b.dataLancamento?.getTime() ?? 0))
@@ -110,6 +132,7 @@ export async function GET(req: NextRequest) {
 
     return {
       ano,
+      mes,
       meses: Object.values(meses),
       kpisRec,
       kpisPag,

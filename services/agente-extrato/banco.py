@@ -112,6 +112,16 @@ def salvar_extrato(conn, df):
     colunas = ["empresa_id", "empresa_cnpj", "data_lancamento", "resumo",
                "situacao", "valor", "saldo", "categoria", "conta", "periodo", "data_extracao"]
 
+    # O Postgres não aceita que o mesmo comando de INSERT ... ON CONFLICT DO UPDATE
+    # tente atualizar a MESMA linha (mesma chave de conflito) duas vezes no mesmo lote.
+    # Extratos financeiros às vezes trazem linhas repetidas (mesma empresa/data/resumo/valor),
+    # então removemos as duplicatas aqui, mantendo a última ocorrência (info mais recente).
+    chave_conflito = ["empresa_cnpj", "data_lancamento", "resumo", "valor"]
+    linhas_antes = len(df)
+    df = df.drop_duplicates(subset=chave_conflito, keep="last")
+    if len(df) < linhas_antes:
+        log.info(f"  {linhas_antes - len(df)} linha(s) duplicada(s) no extrato removida(s) antes de salvar")
+
     # Converte para lista de tuplas (None no lugar de NaN)
     registros = df.where(df.notna(), None).to_dict(orient="records")
     lotes_valores = [tuple(rec.get(c) for c in colunas) for rec in registros]

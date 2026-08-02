@@ -11,20 +11,23 @@ const CORES = ['#3b82f6', '#f43f5e', '#fb923c', '#22c55e', '#8b5cf6', '#4a6080']
 
 export default function ContasPagarClient({ clienteId }: { clienteId: string }) {
   const [ano, setAno] = useState(new Date().getFullYear());
+  const [mes, setMes] = useState<number | ''>('');
   const [dados, setDados] = useState<any>(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     setCarregando(true);
-    fetch(`/api/v1/financeiro?clienteId=${clienteId}&ano=${ano}`)
+    const query = `/api/v1/financeiro?clienteId=${clienteId}&ano=${ano}${mes ? `&mes=${mes}` : ''}`;
+    fetch(query)
       .then((r) => r.json())
       .then(setDados)
       .finally(() => setCarregando(false));
-  }, [clienteId, ano]);
+  }, [clienteId, ano, mes]);
 
   if (carregando || !dados) return <div className="page"><p>Carregando…</p></div>;
 
   const { kpisPag, meses, categoriasPag, pendentesPag } = dados;
+  const rotuloPeriodo = mes ? `${MESES[mes - 1]}/${ano}` : `${ano}`;
 
   return (
     <div className="page">
@@ -32,6 +35,11 @@ export default function ContasPagarClient({ clienteId }: { clienteId: string }) 
         <span className="filter-lbl">Ano</span>
         <select className="filter-sel" value={ano} onChange={(e) => setAno(Number(e.target.value))}>
           {[ano - 1, ano, ano + 1].map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <span className="filter-lbl">Mês</span>
+        <select className="filter-sel" value={mes} onChange={(e) => setMes(e.target.value ? Number(e.target.value) : '')}>
+          <option value="">Todos os meses</option>
+          {MESES.map((nomeMes, i) => <option key={nomeMes} value={i + 1}>{nomeMes}</option>)}
         </select>
       </div>
 
@@ -44,7 +52,7 @@ export default function ContasPagarClient({ clienteId }: { clienteId: string }) 
 
       <div className="charts-2">
         <div className="chart-card">
-          <div className="chart-title">Pagos por Mês ({ano})</div>
+          <div className="chart-title">Pagos por Mês ({rotuloPeriodo})</div>
           <div className="chart-wrap" style={{ height: '230px' }}>
             <Bar
               data={{ labels: MESES, datasets: [{ label: 'Pago', data: meses.map((m: any) => m.pagTotal), backgroundColor: '#f43f5e' }] }}

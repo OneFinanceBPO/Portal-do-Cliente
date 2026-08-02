@@ -1,11 +1,9 @@
 {
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(auth)/recuperar-senha/page": "app/(auth)/recuperar-senha/page.js",
   "/(auth)/redefinir-senha/page": "app/(auth)/redefinir-senha/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/api/v1/financeiro/route": "app/api/v1/financeiro/route.js",
+  "/(financeiro)/contas-receber/page": "app/(financeiro)/contas-receber/page.js",
   "/(admin)/clientes/page": "app/(admin)/clientes/page.js",
-  "/(admin)/usuarios/page": "app/(admin)/usuarios/page.js",
-  "/(financeiro)/contas-receber/page": "app/(financeiro)/contas-receber/page.js"
+  "/(financeiro)/contas-pagar/page": "app/(financeiro)/contas-pagar/page.js",
+  "/(financeiro)/dre/page": "app/(financeiro)/dre/page.js"
 }
