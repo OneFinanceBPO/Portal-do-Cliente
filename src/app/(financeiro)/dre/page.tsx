@@ -1,21 +1,20 @@
-import { redirect } from "next/navigation";
-import { getSessaoOuNull, podeAcessarCliente } from "@/lib/rbac";
+import { redirect } from 'next/navigation';
+import { getSessaoOuNull, podeAcessarCliente } from '@/lib/rbac';
 import { getEmpresaIdAtual } from '@/lib/empresa-atual';
 import SyncEmpresaCookie from '@/components/financeiro/sync-empresa-cookie';
-import TabelaFinanceira from "@/components/tabela-financeira";
+import DreClient from './dre-client';
 
 export default async function DrePage({ searchParams }: { searchParams: { clienteId?: string } }) {
-    const sessao = await getSessaoOuNull();
-    if (!sessao) redirect('/login');
+  const sessao = await getSessaoOuNull();
+  if (!sessao) redirect('/login');
 
-    const clienteId = getEmpresaIdAtual(searchParams.clienteId)
-    if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
+  const clienteId = getEmpresaIdAtual(searchParams.clienteId);
+  if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
 
-    return (
-        <main className="page">
-            <SyncEmpresaCookie clienteId={clienteId} />
-            <h1>DRE — Demonstrativo de Resultado</h1>
-            <TabelaFinanceira clienteId={clienteId} destaque="saldo" />
-        </main>
-    );
+  return (
+    <>
+      <SyncEmpresaCookie clienteId={clienteId} />
+      <DreClient clienteId={clienteId} />
+    </>
+  );
 }

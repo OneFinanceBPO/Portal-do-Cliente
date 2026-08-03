@@ -1,9 +1,7 @@
 {
-  "/(auth)/redefinir-senha/page": "app/(auth)/redefinir-senha/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/api/v1/financeiro/route": "app/api/v1/financeiro/route.js",
   "/(financeiro)/contas-receber/page": "app/(financeiro)/contas-receber/page.js",
   "/(admin)/clientes/page": "app/(admin)/clientes/page.js",
   "/(financeiro)/contas-pagar/page": "app/(financeiro)/contas-pagar/page.js",
-  "/(financeiro)/dre/page": "app/(financeiro)/dre/page.js"
+  "/(financeiro)/fluxo-caixa/page": "app/(financeiro)/fluxo-caixa/page.js",
+  "/(admin)/log/page": "app/(admin)/log/page.js"
 }

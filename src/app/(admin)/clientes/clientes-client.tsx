@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ModalCliente from './modal-cliente';
+import GerenciamentoTour from '@/components/tour/gerenciamento-tour';
 
 type Empresa = { id: string; nome: string; cnpj: string; segmento: string | null; ativo: boolean | null };
 
@@ -36,7 +37,9 @@ export default function ClientesClient({ empresas, isAdmin }: { empresas: Empres
 
   return (
     <main className="page">
-      <div className="search" style={{ maxWidth: '100%', marginBottom: '12px' }}>
+      <GerenciamentoTour />
+
+      <div className="search" data-tour="busca-cliente" style={{ maxWidth: '100%', marginBottom: '12px' }}>
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z" /></svg>
         <input placeholder="Buscar cliente…" value={busca} onChange={(e) => setBusca(e.target.value)} />
       </div>
@@ -54,7 +57,7 @@ export default function ClientesClient({ empresas, isAdmin }: { empresas: Empres
 
       <div className="sec-header">
         <span style={{ fontSize: '12px', color: 'var(--text2)' }}>{listaFiltrada.length} cliente{listaFiltrada.length !== 1 ? 's' : ''}</span>
-        {isAdmin && <button className="btn btn-primary btn-sm" onClick={() => setModalAberto('novo')}>+ Novo cliente</button>}
+        {isAdmin && <button className="btn btn-primary btn-sm" data-tour="novo-cliente" onClick={() => setModalAberto('novo')}>+ Novo cliente</button>}
       </div>
 
       <div className="clients-grid">

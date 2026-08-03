@@ -44,7 +44,7 @@ export default function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
         )}
         {isAdmin && (
           <Link href="/usuarios?novo=1">
-            <button className="nav-btn" title="Novo Perfil">
+            <button className="nav-btn" data-tour="gestao-perfis" title="Novo Perfil">
               {IconNovoUsuario}
               <span className="nav-tooltip">Novo Perfil</span>
             </button>
