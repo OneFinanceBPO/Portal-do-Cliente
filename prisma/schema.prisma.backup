@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ExtratoMovimentacao {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  empresa_id      String?   @db.Uuid
+  empresa_cnpj    String
+  dataLancamento  DateTime? @map("data_lancamento") @db.Date
+  resumo          String?
+  situacao        String?
+  valor           Decimal?  @db.Decimal(15, 2)
+  saldo           Decimal?  @db.Decimal(15, 2)
+  categoria       String?
+  conta           String?
+  periodo         String?   @default("todo_periodo")
+  data_extracao   DateTime? @default(now()) @db.Timestamptz(6)
+  data_vencimento DateTime? @db.Date
+  empresas        empresas? @relation(fields: [empresa_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([empresa_cnpj, dataLancamento, resumo, valor])
+  @@map("extrato_movimentacoes")
+}
+
+model empresas {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                  String
+  cnpj                  String?               @unique
+  ativo                 Boolean?              @default(true)
+  criado_em             DateTime?             @default(now()) @db.Timestamptz(6)
+  atualizado_em         DateTime?             @default(now()) @db.Timestamptz(6)
+  extrato_movimentacoes ExtratoMovimentacao[]
+}
+
+model log_clientes {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  execucao_id      String?        @db.Uuid
+  empresa_nome     String?
+  empresa_cnpj     String?
+  status           String?
+  motivo           String?
+  registros_salvos Int?           @default(0)
+  executado_em     DateTime?      @default(now()) @db.Timestamptz(6)
+  log_execucoes    log_execucoes? @relation(fields: [execucao_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model log_execucoes {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  iniciado_em      DateTime?      @default(now()) @db.Timestamptz(6)
+  finalizado_em    DateTime?      @db.Timestamptz(6)
+  total_hub        Int?
+  total_portal     Int?
+  clientes_ok      Int?           @default(0)
+  clientes_erro    Int?           @default(0)
+  clientes_pulados Int?           @default(0)
+  status           String?        @default("em_andamento")
+  log_clientes     log_clientes[]
+}

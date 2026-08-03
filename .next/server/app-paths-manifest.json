@@ -1,0 +1,7 @@
+{
+  "/(financeiro)/contas-receber/page": "app/(financeiro)/contas-receber/page.js",
+  "/(admin)/clientes/page": "app/(admin)/clientes/page.js",
+  "/(financeiro)/contas-pagar/page": "app/(financeiro)/contas-pagar/page.js",
+  "/(financeiro)/fluxo-caixa/page": "app/(financeiro)/fluxo-caixa/page.js",
+  "/(admin)/log/page": "app/(admin)/log/page.js"
+}
