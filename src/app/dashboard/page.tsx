@@ -4,6 +4,7 @@ import { getEmpresaIdAtual } from '@/lib/empresa-atual';
 import SyncEmpresaCookie from '@/components/financeiro/sync-empresa-cookie';
 import { db } from '@/lib/db';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default async function DashboardPage({ searchParams }: { searchParams: { clienteId?: string } }) {
   const sessao = await getSessaoOuNull();
@@ -36,38 +37,38 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           </div>
 
           <div className="mod-list">
-            <a href={`/contas-receber?clienteId=${empresa.id}`} className="mod-item">
+            <Link href={`/contas-receber?clienteId=${empresa.id}`} className="mod-item">
               <div className="mod-num">1</div>
               <div className="mod-info">
                 <div className="mod-name">Contas a Receber</div>
                 <div className="mod-desc">Recebíveis, vencimentos e status de cobranças</div>
               </div>
-            </a>
-            <a href={`/contas-pagar?clienteId=${empresa.id}`} className="mod-item">
+            </Link>
+            <Link href={`/contas-pagar?clienteId=${empresa.id}`} className="mod-item">
               <div className="mod-num">2</div>
               <div className="mod-info">
                 <div className="mod-name">Contas a Pagar</div>
                 <div className="mod-desc">Pagamentos, vencimentos e categorias de despesas</div>
               </div>
-            </a>
-            <a href={`/fluxo-caixa?clienteId=${empresa.id}`} className="mod-item">
+            </Link>
+            <Link href={`/fluxo-caixa?clienteId=${empresa.id}`} className="mod-item">
               <div className="mod-num">3</div>
               <div className="mod-info">
                 <div className="mod-name">Fluxo de Caixa</div>
                 <div className="mod-desc">Entradas, saídas e saldo do período</div>
               </div>
-            </a>
-            <a href={`/dre?clienteId=${empresa.id}`} className="mod-item">
+            </Link>
+            <Link href={`/dre?clienteId=${empresa.id}`} className="mod-item">
               <div className="mod-num">4</div>
               <div className="mod-info">
                 <div className="mod-name">DRE</div>
                 <div className="mod-desc">Demonstrativo de Resultado Gerencial</div>
               </div>
-            </a>
+            </Link>
           </div>
 
           <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-            <a href="/clientes" style={{ fontSize: '11px', color: 'var(--text2)' }}>← Voltar</a>
+            <Link href="/clientes" style={{ fontSize: '11px', color: 'var(--text2)' }}>← Voltar</Link>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { IconClientes, IconPerfil, IconAtividade, IconSair, IconNovoUsuario } from './admin-icons';
@@ -18,7 +19,7 @@ export default function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <aside className="sidebar" id="mainSidebar">
       <div className="brand">
-        <Link href="/clientes"><img src="/logo.png" alt="One Finance" /></Link>
+        <Link href="/clientes"><Image src="/logo.png" alt="One Finance" width={36} height={36} /></Link>
       </div>
       <nav>
 

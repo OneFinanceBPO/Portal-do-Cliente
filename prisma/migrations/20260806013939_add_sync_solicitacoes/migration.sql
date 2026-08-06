@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "sync_solicitacoes" ALTER COLUMN "solicitado_em" SET DATA TYPE TIMESTAMP(3),
+ALTER COLUMN "iniciado_em" SET DATA TYPE TIMESTAMP(3),
+ALTER COLUMN "finalizado_em" SET DATA TYPE TIMESTAMP(3);

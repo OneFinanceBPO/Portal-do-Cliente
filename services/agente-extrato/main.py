@@ -1,7 +1,4 @@
-"""
-Agente de Extrato de Movimentações — One Finance BPO Financeiro
-Extrai extratos do Conta Azul Mais e salva no Supabase.
-"""
+
 
 import os
 import sys
@@ -29,6 +26,7 @@ from navegador import iniciar_navegador, fazer_login, listar_clientes_do_hub, en
 from exportador import extrair_extrato_cliente
 from banco import conectar, listar_empresas_do_portal, verificar_empresa_no_portal, salvar_extrato, iniciar_log_execucao, registrar_log_cliente, finalizar_log_execucao
 from notificador import enviar_relatorio
+from lock import adquirir_lock, liberar_lock
 
 
 def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=False):
@@ -36,6 +34,10 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
     log.info("─" * 45)
     log.info(f"Agente iniciado: {inicio.strftime('%H:%M:%S')}")
     log.info("─" * 45)
+
+    if not adquirir_lock():
+        log.warning("Já existe uma sincronização em andamento (provavelmente sync_worker.py) — pulando esta execução.")
+        return
 
     conn = conectar()
     empresas_portal = listar_empresas_do_portal(conn)
@@ -156,6 +158,7 @@ def run_agente(debug=False, modo_teste=False, filtro_cliente=None, sem_email=Fal
             browser.close()
         if playwright:
             playwright.stop()
+        liberar_lock()
 
 
 if __name__ == "__main__":

@@ -91,6 +91,11 @@ a { text-decoration: none; color: inherit; }
 }
 .icon-btn:hover { background:rgba(255,255,255,.06); color:var(--text); }
 .icon-btn svg { width:18px; height:18px; }
+.icon-btn.sync-syncing { color:var(--accent2); cursor:default; }
+.icon-btn.sync-syncing svg { animation: spin 1s linear infinite; }
+.icon-btn.sync-ok { color:#22c55e; }
+.icon-btn.sync-erro { color:#f43f5e; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .avatar {
   width:32px; height:32px; border-radius:50%; background:var(--accent);
   display:flex; align-items:center; justify-content:center;

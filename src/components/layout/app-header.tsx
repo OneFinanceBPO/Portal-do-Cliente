@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import MenuUsuario from '@/components/menu-usuario';
+import SyncButton from '@/components/financeiro/sync-button';
 
 const TITULOS: Record<string, string> = {
   '/contas-receber': 'Contas a Receber',
@@ -12,7 +13,7 @@ const TITULOS: Record<string, string> = {
   '/dre': 'DRE — Demonstrativo de Resultado Gerencial',
 };
 
-export default function AppHeader({ titulo, nomeUsuario }: { titulo?: string; nomeUsuario: string }) {
+export default function AppHeader({ titulo, nomeUsuario, mostrarSync = false }: { titulo?: string; nomeUsuario: string; mostrarSync?: boolean }) {
   const pathname = usePathname();
   const [hora, setHora] = useState('');
 
@@ -51,6 +52,7 @@ export default function AppHeader({ titulo, nomeUsuario }: { titulo?: string; no
           <span className="lbl">Última atualização</span>
           <span>{hora}</span>
         </div>
+        {mostrarSync && <SyncButton />}
         <button className="icon-btn" onClick={toggleFull} title="Tela cheia">⛶</button>
         <MenuUsuario nome={nomeUsuario} />
       </div>

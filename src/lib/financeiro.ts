@@ -16,10 +16,7 @@ export async function getDadosFinanceiro(empresaId: string, ano: number, mes: nu
     const inicioAno = new Date(`${ano}-01-01`);
     const fimAno = new Date(`${ano + 1}-01-01`);
 
-    // ── Uma query só pro ano inteiro (antes buscava duas vezes quando `mes`
-    // era informado: uma pro período e outra pro ano inteiro, com o período
-    // sendo sempre um subconjunto do ano). O período agora é filtrado em
-    // memória a partir do mesmo resultado. ──────────────────────────────────
+
     const movimentacoesAnoInteiro = await db.extratoMovimentacao.findMany({
       where: {
         empresa_id: empresaId,
@@ -27,6 +24,7 @@ export async function getDadosFinanceiro(empresaId: string, ano: number, mes: nu
         situacao: { in: SITUACOES_REALIZADAS },
         categoria: { notIn: CATEGORIAS_EXCLUIDAS },
       },
+      select: { dataLancamento: true, valor: true, categoria: true },
       orderBy: { dataLancamento: 'asc' },
     });
 
@@ -60,6 +58,7 @@ export async function getDadosFinanceiro(empresaId: string, ano: number, mes: nu
         categoria: { notIn: CATEGORIAS_EXCLUIDAS },
         ...(mes ? { data_vencimento: { gte: inicioPeriodo, lt: fimPeriodo } } : {}),
       },
+      select: { data_vencimento: true, dataLancamento: true, valor: true, resumo: true, categoria: true },
     });
 
     const hoje = new Date();

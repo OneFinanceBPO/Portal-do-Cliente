@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import KpiRow, { Kpi } from '@/components/financeiro/kpi-row';
 import { CORES, opcoesLinha, datasetLinha } from '@/components/financeiro/chart-theme';
@@ -44,20 +44,32 @@ const fmt = (n: number) => (n < 0 ? `(${C(n)})` : C(n));
 const somaPeriodo = (arr: number[], inicio: number, fimInclusive: number) =>
   arr.slice(inicio, fimInclusive).reduce((s, v) => s + v, 0);
 
-export default function DreClient({ clienteId }: { clienteId: string }) {
-  const [ano, setAno] = useState(new Date().getFullYear());
+export default function DreClient({
+  clienteId,
+  anoInicial,
+  dadosIniciais,
+}: {
+  clienteId: string;
+  anoInicial: number;
+  dadosIniciais: DreApi;
+}) {
+  const [ano, setAno] = useState(anoInicial);
   const [mes, setMes] = useState<number | ''>(''); // '' = "Todos" (acumulado até o último mês com dado)
-  const [dados, setDados] = useState<DreApi | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const [dados, setDados] = useState<DreApi>(dadosIniciais);
+  // Já chega com dado (veio do servidor) — só mostra "carregando" quando o
+  // usuário troca o ano e um novo fetch client-side está em andamento.
+  const [carregando, setCarregando] = useState(false);
   const [gruposFechados, setGruposFechados] = useState<Set<number>>(new Set());
 
   useEffect(() => {
+    // Evita refazer o fetch do ano inicial que já veio pronto do servidor.
+    if (ano === anoInicial) return;
     setCarregando(true);
     fetch(`/api/v1/financeiro/dre?clienteId=${clienteId}&ano=${ano}`)
       .then((r) => r.json())
       .then(setDados)
       .finally(() => setCarregando(false));
-  }, [clienteId, ano]);
+  }, [clienteId, ano, anoInicial]);
 
   if (carregando || !dados) return <div className="page"><p>Carregando…</p></div>;
 
@@ -171,8 +183,8 @@ export default function DreClient({ clienteId }: { clienteId: string }) {
                 const totalPeriodo = somaPeriodo(totalArr, inicioIdx, fimIdx);
 
                 return (
-                  <>
-                    <tr key={`sec-${si}`}>
+                  <Fragment key={`sec-${si}`}>
+                    <tr>
                       <td colSpan={colunas.length + 2} style={{ fontWeight: 700, color: 'var(--text2)', paddingTop: 10 }}>
                         <button
                           onClick={() => toggleGrupo(si)}
@@ -215,7 +227,7 @@ export default function DreClient({ clienteId }: { clienteId: string }) {
                       </tr>
                     )}
                     <tr key={`sec-${si}-sep`}><td colSpan={colunas.length + 2} style={{ height: 10 }} /></tr>
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>

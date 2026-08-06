@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSessaoOuNull, podeAcessarCliente } from '@/lib/rbac';
 import { getEmpresaIdAtual } from '@/lib/empresa-atual';
+import { getDadosDre } from '@/lib/dre';
 import SyncEmpresaCookie from '@/components/financeiro/sync-empresa-cookie';
 import DreClient from './dre-client';
 
@@ -11,10 +12,13 @@ export default async function DrePage({ searchParams }: { searchParams: { client
   const clienteId = getEmpresaIdAtual(searchParams.clienteId);
   if (!clienteId || !podeAcessarCliente(sessao, clienteId)) redirect('/dashboard');
 
+  const ano = new Date().getFullYear();
+  const dadosIniciais = await getDadosDre(clienteId, ano);
+
   return (
     <>
       <SyncEmpresaCookie clienteId={clienteId} />
-      <DreClient clienteId={clienteId} />
+      <DreClient clienteId={clienteId} anoInicial={ano} dadosIniciais={dadosIniciais} />
     </>
   );
 }

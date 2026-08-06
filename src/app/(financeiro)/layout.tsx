@@ -22,7 +22,7 @@ export default async function FinanceiroLayout({ children }: { children: React.R
     return (
         <>
             <Sidebar items={items} bottomItems={bottomItems} />
-            <AppHeader titulo="Financeiro" nomeUsuario={usuario.nome} />
+            <AppHeader titulo="Financeiro" nomeUsuario={usuario.nome} mostrarSync />
             <main className="main">{children}</main>
             <div className="footer">
                 <div className="footer-dot"></div>

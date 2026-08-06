@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export type NavItem = {
@@ -16,7 +17,7 @@ export default function Sidebar({ items, bottomItems }: { items: NavItem[]; bott
     <aside className="sidebar" id="mainSidebar">
       <div className="brand">
         <Link href="/clientes">
-          <img src="/logo.png" alt="One Finance" />
+          <Image src="/logo.png" alt="One Finance" width={36} height={36} />
         </Link>
       </div>
       <nav>
